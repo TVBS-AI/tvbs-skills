@@ -13,9 +13,9 @@
       "source": {
         "source": "github",
         "repo": "TVBS-AI/tvbs-skills",
-        "path": "my-wiki"
+        "path": "plugins/my-wiki"
       },
-      "homepage": "https://github.com/TVBS-AI/tvbs-skills/tree/main/my-wiki",
+      "homepage": "https://github.com/TVBS-AI/tvbs-skills/tree/main/plugins/my-wiki",
       "tags": ["wiki", "report", "cloudflare", "workers", "r2"]
     },
     {
@@ -25,9 +25,9 @@
       "source": {
         "source": "github",
         "repo": "TVBS-AI/tvbs-skills",
-        "path": "team-wiki"
+        "path": "plugins/team-wiki"
       },
-      "homepage": "https://github.com/TVBS-AI/tvbs-skills/tree/main/team-wiki",
+      "homepage": "https://github.com/TVBS-AI/tvbs-skills/tree/main/plugins/team-wiki",
       "tags": ["wiki", "team", "report", "cloudflare", "workers", "r2"]
     }
   ]
