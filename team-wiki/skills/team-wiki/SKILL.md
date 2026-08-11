@@ -116,11 +116,8 @@ npx wrangler whoami 2>&1 | head -5
   "vars": {
     "TEAM_IDS": "team-a,team-b,team-c",
     "TEAM_A_NAME": "Team Alpha",
-    "TEAM_A_MEMBERS": "alice,bob,carol",
     "TEAM_B_NAME": "Team Beta",
-    "TEAM_B_MEMBERS": "dave,eve",
-    "TEAM_C_NAME": "Team Gamma",
-    "TEAM_C_MEMBERS": "frank,grace"
+    "TEAM_C_NAME": "Team Gamma"
   }
 }
 ```
@@ -188,7 +185,6 @@ import { Env } from '../index';
 
 export interface TeamConfig {
   name: string;
-  members: string[];
   apiKey: string;
 }
 
@@ -199,12 +195,8 @@ export function resolveTeamConfig(env: Env): Record<string, TeamConfig> {
   for (const id of teamIds) {
     const upper = id.replace(/-/g, '_').toUpperCase();
     const name = (env[`${upper}_NAME`] as string) ?? id;
-    const members = ((env[`${upper}_MEMBERS`] as string) ?? '')
-      .split(',')
-      .map((s) => s.trim())
-      .filter(Boolean);
     const apiKey = (env[`${upper}_API_KEY`] as string) ?? '';
-    result[id] = { name, members, apiKey };
+    result[id] = { name, apiKey };
   }
 
   return result;
@@ -259,11 +251,6 @@ export async function handlePublish(request: Request, env: Env): Promise<Respons
 
   if (!file || !project || !author) {
     return new Response('Missing required fields: file, project, author', { status: 400 });
-  }
-
-  const team = teams[teamId];
-  if (!team.members.includes(author)) {
-    return new Response(`Author "${author}" is not a member of team "${teamId}"`, { status: 403 });
   }
 
   const filename = file.name;
@@ -457,7 +444,7 @@ export async function handleIndex(
 </head>
 <body>
   <h1>📋 ${escapeHtml(team.name)} Wiki</h1>
-  <p class="subtitle">共 ${reports.length} 份 report · 成員：${escapeHtml(team.members.join(', '))}</p>
+  <p class="subtitle">共 ${reports.length} 份 report</p>
 
   ${authors.length > 1 ? `<div class="filter-section">
     <div class="filter-label">成員</div>
@@ -655,15 +642,11 @@ npx wrangler deploy
    → Self-hosted → Domain: `<自訂網域>`
    → 設定 Policy（例如允許公司 email 網域）
 
-3. **建立 Service Token（給 API 上傳/刪除用）：**
-   → Zero Trust → Access → Service Auth → Create Service Token
-   → 名稱：`team-wiki-publish`
-   → 記下 `CF-Access-Client-Id` 和 `CF-Access-Client-Secret`
-
-4. **把 Service Token 加入 Application Policy：**
-   → 該 Application → Edit → Policies → 新增一條 Policy
-   → Action: **Service Auth**
-   → Include: Service Token → `team-wiki-publish`
+3. **將 `/api` 路徑設為 Bypass（讓 API 呼叫不需 Zero Trust 認證）：**
+   → Zero Trust → Access → Applications → Add an Application → Self-hosted
+   → Application name: `<WORKER_NAME>-api`
+   → Domain: `<自訂網域>`，Path: `/api`
+   → 新增 Policy：Action: **Bypass** → Include: Everyone
 
 ### Step 6：給管理員設定說明卡產生
 
@@ -672,14 +655,12 @@ npx wrangler deploy
 ---
 **Team A 成員設定說明**
 ```bash
-# 複製以下內容貼到 ~/.zshenv，重啟 Claude Code 後生效
+# 在專案根目錄建立 .env 檔，填入以下內容
 
-export TEAM_WIKI_URL="https://wiki.example.com"
-export TEAM_WIKI_API_KEY="<TEAM_A_KEY>"
-export TEAM_WIKI_AUTHOR="<你的名字，例如 alice>"
-export TEAM_WIKI_TEAM="team-a"
-export TEAM_WIKI_CF_CLIENT_ID="<CF-Access-Client-Id>"
-export TEAM_WIKI_CF_CLIENT_SECRET="<CF-Access-Client-Secret>"
+TEAM_WIKI_URL=https://wiki.example.com
+TEAM_WIKI_API_KEY=<TEAM_A_KEY>
+TEAM_WIKI_AUTHOR=你的英文名字（例如 alice）
+TEAM_WIKI_TEAM=team-a
 ```
 ---
 
@@ -691,8 +672,7 @@ export TEAM_WIKI_CF_CLIENT_SECRET="<CF-Access-Client-Secret>"
 📋 Team A 首頁：https://<自訂網域>/team-a/
 📋 Team B 首頁：https://<自訂網域>/team-b/
 📋 Team C 首頁：https://<自訂網域>/team-c/
-🔒 Zero Trust 保護：已啟用
-🔑 Service Token：已設定
+🔒 Zero Trust 保護：已啟用（/api/* 已設為 Bypass）
 
 請將各 team 的設定說明卡分發給對應成員。
 ```
@@ -701,15 +681,18 @@ export TEAM_WIKI_CF_CLIENT_SECRET="<CF-Access-Client-Secret>"
 
 ## [成員設定流程] 已有 URL 和 API Key
 
-管理員已給你一張設定說明卡，將內容貼到 `~/.zshenv`：
+管理員已給你一張設定說明卡，在**專案根目錄**建立 `.env` 檔，填入以下內容：
 
 ```bash
-export TEAM_WIKI_URL="https://wiki.example.com"
-export TEAM_WIKI_API_KEY="<team-api-key>"
-export TEAM_WIKI_AUTHOR="<你的名字>"
-export TEAM_WIKI_TEAM="<team-id>"
-export TEAM_WIKI_CF_CLIENT_ID="<CF-Access-Client-Id>"
-export TEAM_WIKI_CF_CLIENT_SECRET="<CF-Access-Client-Secret>"
+TEAM_WIKI_URL=https://wiki.example.com
+TEAM_WIKI_API_KEY=<team-api-key>
+TEAM_WIKI_AUTHOR=你的英文名字
+TEAM_WIKI_TEAM=<team-id>
+```
+
+確認 `.env` 已加入 `.gitignore`（避免 API Key 被 commit）：
+```bash
+echo ".env" >> .gitignore
 ```
 
 重新啟動 Claude Code 後即可使用。
@@ -739,8 +722,6 @@ export TEAM_WIKI_CF_CLIENT_SECRET="<CF-Access-Client-Secret>"
 ```bash
 curl -X POST ${TEAM_WIKI_URL}/api/publish \
   -H "Authorization: Bearer ${TEAM_WIKI_API_KEY}" \
-  -H "CF-Access-Client-Id: ${TEAM_WIKI_CF_CLIENT_ID}" \
-  -H "CF-Access-Client-Secret: ${TEAM_WIKI_CF_CLIENT_SECRET}" \
   -F "file=@<filepath>" \
   -F "team=${TEAM_WIKI_TEAM}" \
   -F "author=${TEAM_WIKI_AUTHOR}" \
@@ -771,4 +752,4 @@ echo "<NEW_KEY>" | npx wrangler secret put TEAM_D_API_KEY
 npx wrangler deploy
 ```
 
-新增成員只需修改 `TEAM_X_MEMBERS` var 後重新 deploy，不需要改任何 KV。
+成員名單是 dynamic 的，有人上傳 report 後就會自動出現在過濾器，不需要預先設定。
