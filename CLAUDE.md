@@ -78,6 +78,27 @@ Sections to use: `Added`, `Changed`, `Fixed`, `Removed`
 - `docs:` for documentation only changes
 - `chore:` for maintenance tasks
 
+## Repo Split — Where to Put a New Skill
+
+There are two skill repos. Decide before creating any plugin:
+
+| Repo | Visibility | Path | When to use |
+|------|-----------|------|-------------|
+| `TVBS-AI/tvbs-skills` (this repo) | **Public** | `/Users/joecwu/projects/tvbs/tvbs-skills` | Skills with no internal information — safe to share publicly |
+| `TVBS-AI/agent-skills` | **Private** | `/Users/joecwu/projects/tvbs/agent-skills` | Skills that reference internal APIs, endpoints, system architecture, or TVBS-internal details |
+
+**Decision rule:** Does the skill mention any internal URL, API key format, internal system name, or TVBS-only detail?
+- Yes → **agent-skills only**
+- No → **tvbs-skills only**
+- Needed in both → **sync to both repos**, bump versions together
+
+### Plugins currently synced across both repos
+
+- `my-wiki` — synced
+- `team-wiki` — synced
+
+When modifying a synced plugin, always update **both repos** in the same commit session and keep version numbers identical.
+
 ## Important Notes
 
 - Skills are **read-only tools** — they provide instructions and context to AI agents, they do not execute code
