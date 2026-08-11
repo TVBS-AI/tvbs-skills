@@ -17,6 +17,12 @@
       "description": "Team HTML report wiki powered by Cloudflare Worker + R2 + KV. Multiple teams share one Worker; each team sees only their own members' reports, with per-author filtering and cross-member deletion. Zero Trust protected.",
       "source": "./plugins/team-wiki",
       "category": "productivity"
+    },
+    {
+      "name": "tvbs-trends",
+      "description": "Query the TVBS Google Trends system — rising keywords, news opportunity detection (exclusive scoops / urgent follow-ups), keyword volume trends, and historical snapshots. Prefers the npm CLI (npx @tvbs-ai/tvbs-trends), with MCP and REST as fallbacks.",
+      "source": "./plugins/tvbs-trends",
+      "category": "productivity"
     }
   ]
 }
