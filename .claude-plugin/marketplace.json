@@ -1,5 +1,5 @@
 {
-  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "$schema": "https://json.schemastore.org/claude-code-marketplace.json",
   "name": "tvbs-skills",
   "description": "TVBS AI Team's open-source Claude Code agent skills — reusable productivity tools installable via Claude Code Plugin Marketplace.",
   "owner": {
@@ -9,26 +9,14 @@
     {
       "name": "my-wiki",
       "description": "Personal HTML report bookmark wiki powered by Cloudflare Worker + R2 + KV. Guides first-time setup and lets you publish HTML reports from any project with a single command.",
-      "category": "productivity",
-      "source": {
-        "source": "github",
-        "repo": "TVBS-AI/tvbs-skills",
-        "path": "plugins/my-wiki"
-      },
-      "homepage": "https://github.com/TVBS-AI/tvbs-skills/tree/main/plugins/my-wiki",
-      "tags": ["wiki", "report", "cloudflare", "workers", "r2"]
+      "source": "./plugins/my-wiki",
+      "category": "productivity"
     },
     {
       "name": "team-wiki",
       "description": "Team HTML report wiki powered by Cloudflare Worker + R2 + KV. Multiple teams share one Worker; each team sees only their own members' reports, with per-author filtering and cross-member deletion. Zero Trust protected.",
-      "category": "productivity",
-      "source": {
-        "source": "github",
-        "repo": "TVBS-AI/tvbs-skills",
-        "path": "plugins/team-wiki"
-      },
-      "homepage": "https://github.com/TVBS-AI/tvbs-skills/tree/main/plugins/team-wiki",
-      "tags": ["wiki", "team", "report", "cloudflare", "workers", "r2"]
+      "source": "./plugins/team-wiki",
+      "category": "productivity"
     }
   ]
 }
