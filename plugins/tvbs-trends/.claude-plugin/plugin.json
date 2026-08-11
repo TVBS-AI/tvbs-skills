@@ -1,0 +1,19 @@
+{
+  "name": "tvbs-trends",
+  "version": "0.3.0",
+  "description": "Query the TVBS Google Trends system — real-time rising keywords, news opportunity detection (exclusive scoops / urgent follow-ups), keyword volume trends, and historical snapshots. Prefers the npm CLI (npx @tvbs-ai/tvbs-trends), with MCP and REST as fallbacks.",
+  "author": {
+    "name": "TVBS AI Team"
+  },
+  "homepage": "https://github.com/TVBS-AI/tvbs-skills/tree/main/plugins/tvbs-trends",
+  "repository": "https://github.com/TVBS-AI/tvbs-skills",
+  "license": "MIT",
+  "keywords": [
+    "tvbs",
+    "trends",
+    "google-trends",
+    "news",
+    "cli",
+    "mcp"
+  ]
+}
