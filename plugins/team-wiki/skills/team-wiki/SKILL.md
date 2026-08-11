@@ -774,3 +774,56 @@ npx wrangler deploy
 ```
 
 成員名單是 dynamic 的，有人上傳 report 後就會自動出現在過濾器，不需要預先設定。
+
+---
+
+## [查詢流程] 透過 API 讀取內容
+
+需要 `TEAM_WIKI_URL` 和 `TEAM_WIKI_API_KEY`（同上傳流程）。
+
+### 列出 Report 清單
+
+```bash
+curl -s -H "Authorization: Bearer ${TEAM_WIKI_API_KEY}" \
+  "${TEAM_WIKI_URL}/api/reports"
+```
+
+回傳 JSON：
+
+```json
+{
+  "success": true,
+  "team": "video-a",
+  "reports": [
+    {
+      "team": "video-a",
+      "author": "joe",
+      "project": "my-project",
+      "filename": "report.html",
+      "title": "My Report",
+      "url": "/video-a/joe/my-project/report.html",
+      "createdAt": "2026-08-11 14:30",
+      "tags": ["研究報告", "影片生成"]
+    }
+  ]
+}
+```
+
+### 讀取單一 Report 內容
+
+```bash
+curl -s -H "Authorization: Bearer ${TEAM_WIKI_API_KEY}" \
+  "${TEAM_WIKI_URL}/api/report?url=/video-a/joe/my-project/report.html"
+```
+
+回傳 JSON（`html` 欄位為 HTML 原始內容）：
+
+```json
+{
+  "success": true,
+  "url": "/video-a/joe/my-project/report.html",
+  "html": "<!DOCTYPE html>..."
+}
+```
+
+> **注意**：只能查詢自己 team 的 report，跨 team 會回 403。`url` 參數從清單 API 的 `reports[i].url` 取得。

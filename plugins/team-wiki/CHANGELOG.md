@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.3.0] - 2026-08-11
+### Added
+- `GET /api/reports` — list all reports for authenticated team (JSON)
+- `GET /api/report?url=<url>` — fetch raw HTML content of a single report (JSON)
+
 ## [0.2.0] - 2026-08-11
 ### Added
 - Tag suggestion list with Chinese labels (類型 + 環節 兩個維度)
