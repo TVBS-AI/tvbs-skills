@@ -1,6 +1,6 @@
 {
   "name": "team-wiki",
-  "version": "0.1.0",
+  "version": "0.3.0",
   "description": "Team HTML report wiki powered by Cloudflare Worker + R2 + KV. Multiple teams share one Worker; each team sees only their own members' reports. Supports per-author filtering, cross-member deletion, and Zero Trust protection.",
   "author": {
     "name": "TVBS AI Team"
