@@ -1,0 +1,19 @@
+{
+  "name": "my-wiki",
+  "version": "0.1.0",
+  "description": "Personal HTML report bookmark wiki powered by Cloudflare Worker + R2 + KV. First-time use walks through setup; afterwards upload any HTML report from any project to auto-maintain a bookmark homepage.",
+  "author": {
+    "name": "TVBS AI Team"
+  },
+  "homepage": "https://github.com/TVBS-AI/agent-skills/tree/main/plugins/my-wiki",
+  "repository": "https://github.com/TVBS-AI/agent-skills",
+  "license": "MIT",
+  "keywords": [
+    "wiki",
+    "report",
+    "cloudflare",
+    "r2",
+    "kv",
+    "workers"
+  ]
+}

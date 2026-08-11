@@ -1,0 +1,20 @@
+{
+  "name": "team-wiki",
+  "version": "0.1.0",
+  "description": "Team HTML report wiki powered by Cloudflare Worker + R2 + KV. Multiple teams share one Worker; each team sees only their own members' reports. Supports per-author filtering, cross-member deletion, and Zero Trust protection.",
+  "author": {
+    "name": "TVBS AI Team"
+  },
+  "homepage": "https://github.com/TVBS-AI/agent-skills/tree/main/plugins/team-wiki",
+  "repository": "https://github.com/TVBS-AI/agent-skills",
+  "license": "MIT",
+  "keywords": [
+    "wiki",
+    "team",
+    "report",
+    "cloudflare",
+    "r2",
+    "kv",
+    "workers"
+  ]
+}
