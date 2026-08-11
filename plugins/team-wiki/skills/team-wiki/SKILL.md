@@ -717,7 +717,27 @@ echo ".env" >> .gitignore
    若讀不到，用「`<project>-<YYYY-MM-DD>`」
 4. **日期**（選填）— 格式 `YYYY-MM-DD`，省略則用今天。
 
-### Step 2：上傳
+### Step 2：推薦 Tags
+
+上傳前，先讀取 HTML 內容，根據以下清單推薦 1 個**類型** tag + 1-2 個**環節** tag，讓使用者確認或修改後再上傳。
+
+**類型（這份報告是什麼）**
+- `研究報告` — 技術調查、工具評估、可行性分析
+- `實驗結果` — A/B test、模型比較、prompt 測試結果
+- `成果報告` — 某個優化階段的最終產出與結論
+- `週報` — 定期進度更新
+
+**環節（屬於哪個流程）**
+- `影片生成` — AI 影片生成相關（Sora、Runway、Kling 等）
+- `影片剪輯` — 自動剪輯、字幕、後製流程優化
+- `腳本生成` — AI 自動產生影片腳本
+- `行銷文案` — 廣告文案、社群貼文自動化
+- `受眾分析` — 受眾定向、數據分析
+- `流程自動化` — 跨平台串接、自動化 pipeline
+
+使用者也可以自由輸入清單以外的 tag。
+
+### Step 3：上傳
 
 ```bash
 curl -X POST ${TEAM_WIKI_URL}/api/publish \
@@ -727,7 +747,8 @@ curl -X POST ${TEAM_WIKI_URL}/api/publish \
   -F "author=${TEAM_WIKI_AUTHOR}" \
   -F "project=<project>" \
   -F "title=<title>" \
-  -F "date=<YYYY-MM-DD>"
+  -F "tags=<tag1,tag2>" \
+  -F "date=<YYYY-MM-DD HH:mm>"
 ```
 
 ### Step 3：回報結果
