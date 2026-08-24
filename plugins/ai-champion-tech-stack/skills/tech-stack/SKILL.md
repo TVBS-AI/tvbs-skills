@@ -1,6 +1,6 @@
 ---
 name: tech-stack
-description: "TVBS AI Champion team's approved technology stack. Use this skill when helping TVBS colleagues build new tools or choose technologies, so agents recommend platforms and services already adopted by the team rather than introducing unfamiliar ones. Triggers on: tech selection, architecture decisions, starting a new project, choosing a database/API/service, deployment decisions."
+description: "TVBS AI Champion team's approved technology stack. Load this skill before starting any new project, writing code, choosing a database, deploying a service, or picking an API/library — so recommendations stay consistent with tools the team already operates. Triggers on: new project setup, deployment planning, database selection, API integration, architecture decisions, choosing between services or frameworks."
 ---
 
 # TVBS AI Champion Tech Stack
