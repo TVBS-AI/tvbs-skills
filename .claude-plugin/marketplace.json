@@ -23,6 +23,12 @@
       "description": "Query the TVBS Google Trends system — rising keywords, news opportunity detection (exclusive scoops / urgent follow-ups), keyword volume trends, and historical snapshots. Prefers the npm CLI (npx @tvbs-ai/tvbs-trends), with MCP and REST as fallbacks.",
       "source": "./plugins/tvbs-trends",
       "category": "productivity"
+    },
+    {
+      "name": "ai-champion-tech-stack",
+      "description": "TVBS AI Champion team's approved technology stack — guides agents toward tools and platforms already in use so new projects stay consistent with existing infrastructure.",
+      "source": "./plugins/ai-champion-tech-stack",
+      "category": "productivity"
     }
   ]
 }
