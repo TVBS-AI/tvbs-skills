@@ -1,0 +1,137 @@
+#!/usr/bin/env python3
+"""
+tvbs-trends — TVBS Trends CLI wrapper for Hermes tenant agents.
+
+Reads TVBS_TRENDS_KEY from the environment (a managed egress stub; the Hub
+egress proxy replaces it with the real key for requests to trends.tvbs.ai).
+Delegates to `npx -y @tvbs-ai/tvbs-trends` when Node/npx is available,
+otherwise falls back to direct REST calls using only the Python standard library.
+
+Usage:
+  tvbs-trends <command> [options]
+
+Commands (all read-only):
+  opportunities   News opportunity detection (exclusive scoops / urgent follow-ups)
+  digest          Formatted newsroom digest
+  latest          Latest trending snapshot (fast, cached ≤1 h)
+  trending        Real-time rising keywords (live crawl, slower)
+  timeline        Keyword volume trend over time
+  snapshot        Historical trending snapshot at a given point in time
+  interest        Search interest time series for specific keywords
+
+Run `tvbs-trends <command> --help` for per-command options.
+"""
+
+import os
+import sys
+import subprocess
+import shutil
+
+
+_ENV_KEY = "TVBS_TRENDS_KEY"
+_BASE_URL = "https://trends.tvbs.ai"
+
+
+def _get_key() -> str:
+    key = os.environ.get(_ENV_KEY, "")
+    if not key:
+        print(
+            f"ERROR: {_ENV_KEY} is not set. "
+            "Contact your Hub administrator to ensure the TVBS Trends managed "
+            "secret is registered for this tenant.",
+            file=sys.stderr,
+        )
+        sys.exit(1)
+    return key
+
+
+def _run_via_npx(args: list[str]) -> None:
+    """Delegate to the published npm CLI (preferred path)."""
+    env = os.environ.copy()
+    env["TVBS_TRENDS_API_KEY"] = env.pop(_ENV_KEY, "")
+    result = subprocess.run(
+        ["npx", "-y", "@tvbs-ai/tvbs-trends", *args],
+        env=env,
+    )
+    sys.exit(result.returncode)
+
+
+def _rest_fallback(args: list[str]) -> None:
+    """Minimal REST fallback using only the Python standard library."""
+    import urllib.request
+    import urllib.parse
+    import json
+
+    key = _get_key()
+
+    command_map = {
+        "opportunities":  "/api/v2/trends/opportunities",
+        "digest":         "/api/v2/trends/digest",
+        "latest":         "/api/v2/trends/snapshots/latest",
+        "trending":       "/api/v2/trends/live/trending",
+        "timeline":       "/api/v2/trends/snapshots/timeline",
+        "snapshot":       "/api/v2/trends/snapshots",
+        "interest":       "/api/v2/trends/live/interest",
+    }
+
+    if not args or args[0] in ("-h", "--help"):
+        print(__doc__)
+        sys.exit(0)
+
+    cmd = args[0]
+    if cmd not in command_map:
+        print(f"ERROR: Unknown command '{cmd}'. Run `tvbs-trends --help`.", file=sys.stderr)
+        sys.exit(1)
+
+    # Parse remaining args as --key value pairs
+    params: dict[str, str] = {}
+    rest = args[1:]
+    i = 0
+    while i < len(rest):
+        a = rest[i]
+        if a in ("-h", "--help"):
+            print(f"See: npx -y @tvbs-ai/tvbs-trends {cmd} --help")
+            sys.exit(0)
+        if a.startswith("--") and i + 1 < len(rest):
+            k = a[2:].replace("-", "_")
+            params[k] = rest[i + 1]
+            i += 2
+        else:
+            i += 1
+
+    url = _BASE_URL + command_map[cmd]
+    if params:
+        url += "?" + urllib.parse.urlencode(params)
+
+    req = urllib.request.Request(url, headers={"X-API-Key": key})
+    try:
+        with urllib.request.urlopen(req, timeout=30) as resp:
+            body = resp.read().decode()
+            print(body)
+    except urllib.error.HTTPError as e:
+        body = e.read().decode()
+        print(f"ERROR {e.code}: {body}", file=sys.stderr)
+        sys.exit(1)
+    except urllib.error.URLError as e:
+        print(f"ERROR: {e.reason}", file=sys.stderr)
+        sys.exit(1)
+
+
+def main() -> None:
+    args = sys.argv[1:]
+
+    if not args or args[0] in ("-h", "--help", "--version"):
+        if shutil.which("npx"):
+            _run_via_npx(args)
+        else:
+            print(__doc__)
+            sys.exit(0)
+
+    if shutil.which("npx"):
+        _run_via_npx(args)
+    else:
+        _rest_fallback(args)
+
+
+if __name__ == "__main__":
+    main()

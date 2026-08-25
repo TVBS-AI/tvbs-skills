@@ -1,0 +1,20 @@
+schemaVersion: 1
+kind: HubFlavor
+id: tvbs_trends
+version: 1.0.0
+name: TVBS Trends
+description: >
+  Gives tenant agents access to the TVBS Trends news-opportunity intelligence
+  system. Ships the tvbs-trends CLI and SKILL.md. Requires a managed
+  TVBS_TRENDS_KEY egress secret to be registered for the tenant; the CLI
+  reads the stub and the Hub egress proxy replaces it with the real key for
+  requests to trends.tvbs.ai.
+trustLevel: first_party
+skillNamespace: tvbs
+checksums:
+  algorithm: sha256
+  files:
+    agent_specialization.md: 68c4b3206184aa5764391b036a69a76bca5f50be70cf3a72ffc282d1d7933238
+    config.yaml: 1307f2a2ed7a88c16dfebd8512ffc8604ebe4a94f568a824664c616b4d3d74a9
+    tenant/bin/tvbs-trends: 62ef38432da713838993fb25f0ed1e03cdc7e569a599f2e521133a47216c2317
+    tenant/skills/tvbs-trends/SKILL.md: 5b0c58aebbc820b4365f6d1974c0cd5043689b8356400ca8f288ca14235b74d7

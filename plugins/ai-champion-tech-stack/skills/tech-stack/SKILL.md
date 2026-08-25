@@ -62,15 +62,37 @@ Install the following MCP servers and skills to give your coding agent (Claude C
 | **zeabur** | Lets the agent deploy services, read logs, and manage env vars directly via Zeabur |
 | **cloudflare** | Lets the agent manage Workers, R2, D1, and KV directly |
 
-### Skills (install via `tvbs-skills` marketplace)
+### Skills
+
+**From `tvbs-skills` marketplace** (`/plugin marketplace add TVBS-AI/tvbs-skills`):
 
 | Skill | Purpose |
 |-------|---------|
 | **ai-champion-tech-stack** (this skill) | Tech stack reference for consistent tool selection |
+
+**From `tvbs-skills` marketplace** (continued):
+
+| Skill | Purpose |
+|-------|---------|
+| **elasticsearch-master** | Index design, query patterns, mapping best practices, and zero-downtime deployment |
+
+**From `cloudflare` plugin** (`/plugin marketplace add cloudflare`):
+
+| Skill | Purpose |
+|-------|---------|
 | **cloudflare** | Best practices and patterns for Cloudflare Workers/R2/D1/KV |
 | **wrangler** | Correct CLI syntax for deploying and managing Workers |
 | **workers-best-practices** | Guards against common Workers mistakes (floating promises, global state, etc.) |
-| **elasticsearch-master** | Index design, query patterns, and mapping best practices |
+
+**From `langfuse` plugin** (`/plugin marketplace add langfuse/skills`):
+
+| Skill | Purpose |
+|-------|---------|
 | **langfuse** | SDK usage and CLI access for traces, prompts, and cost data |
+
+**From `claude-plugins-official` marketplace** (`/plugin marketplace add claude-plugins-official`):
+
+| Skill | Purpose |
+|-------|---------|
 | **firecrawl** | API usage for web scraping and crawling |
 | **ui-ux-pro-max** | UI design intelligence — helps agents produce polished interfaces without a designer |

@@ -1,0 +1,6 @@
+{
+  "name": "elasticsearch-master",
+  "version": "0.1.0",
+  "description": "Elasticsearch best practices for TVBS projects — index versioning, alias management, mapping design, semantic search, ingest pipelines, and zero-downtime deployment.",
+  "author": "TVBS AI Team"
+}

@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.3.0] - 2026-08-25
+
+### Changed
+- Fix skill installation sources: langfuse points to `langfuse/skills`, elasticsearch-master points to `tvbs-skills`
+
 ## [0.2.0] - 2026-08-25
 
 ### Added

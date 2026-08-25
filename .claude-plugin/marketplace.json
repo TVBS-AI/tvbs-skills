@@ -25,6 +25,12 @@
       "category": "productivity"
     },
     {
+      "name": "elasticsearch-master",
+      "description": "Elasticsearch best practices for TVBS projects — index versioning, alias management, mapping design, semantic search, ingest pipelines, and zero-downtime deployment.",
+      "source": "./plugins/elasticsearch-master",
+      "category": "productivity"
+    },
+    {
       "name": "ai-champion-tech-stack",
       "description": "TVBS AI Champion team's approved technology stack — guides agents toward tools and platforms already in use so new projects stay consistent with existing infrastructure.",
       "source": "./plugins/ai-champion-tech-stack",
