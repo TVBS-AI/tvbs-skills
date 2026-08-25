@@ -47,7 +47,30 @@ For up-to-date usage details (API docs, SDK versions, configuration), always loo
 - **RSSHub** — self-hosted RSS aggregation layer
 - **RSS.app** — managed RSS feed service
 
-## Media & Content
+---
 
-- **ElevenLabs** — (also listed under AI; text-to-speech)
-- **Kie.ai** — (also listed under AI; video generation)
+## Recommended Agent Setup for New Team Members
+
+Install the following MCP servers and skills to give your coding agent (Claude Code, Codex, etc.) the best context for TVBS projects.
+
+### MCP Servers (install first)
+
+| MCP | Purpose |
+|-----|---------|
+| **context7** | Looks up the latest SDK/library docs on demand — prevents agents from using outdated API signatures |
+| **deepwiki** | Reads GitHub project architecture and design docs — useful when integrating open-source tools |
+| **zeabur** | Lets the agent deploy services, read logs, and manage env vars directly via Zeabur |
+| **cloudflare** | Lets the agent manage Workers, R2, D1, and KV directly |
+
+### Skills (install via `tvbs-skills` marketplace)
+
+| Skill | Purpose |
+|-------|---------|
+| **ai-champion-tech-stack** (this skill) | Tech stack reference for consistent tool selection |
+| **cloudflare** | Best practices and patterns for Cloudflare Workers/R2/D1/KV |
+| **wrangler** | Correct CLI syntax for deploying and managing Workers |
+| **workers-best-practices** | Guards against common Workers mistakes (floating promises, global state, etc.) |
+| **elasticsearch-master** | Index design, query patterns, and mapping best practices |
+| **langfuse** | SDK usage and CLI access for traces, prompts, and cost data |
+| **firecrawl** | API usage for web scraping and crawling |
+| **ui-ux-pro-max** | UI design intelligence — helps agents produce polished interfaces without a designer |

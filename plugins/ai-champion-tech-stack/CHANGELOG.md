@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.2.0] - 2026-08-25
+
+### Added
+- Recommended agent setup section: MCP servers (context7, deepwiki, zeabur, cloudflare) and skills for new team members
+
 ## [0.1.1] - 2026-08-25
 
 ### Changed
