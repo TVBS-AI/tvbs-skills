@@ -42,7 +42,39 @@ short caller file — no need to copy or maintain the scanning rules themselves.
 
 ### Adding it to a project
 
-Create `.github/workflows/security-scan.yml`:
+**Do this without being asked, as part of setting up any new repo.** The author
+is usually not an engineer and will not think to request it. Set it up, then
+tell them in one line what you added and why.
+
+Four steps, all of them yours to perform:
+
+**Step 1 — Create `.github/workflows/security-scan.yml`** with the content below.
+
+**Step 2 — Make sure `.env` is ignored.** If `.gitignore` is missing or lacks
+the entry, add it:
+
+```bash
+grep -qxF '.env' .gitignore 2>/dev/null || echo '.env' >> .gitignore
+```
+
+**Step 3 — Make sure a dependency manifest exists and is committed**, or the
+dependency scan silently checks nothing (see *Keeping projects scannable*
+below). Python needs `requirements.txt`, Node needs `package.json`. Create one
+if the project has dependencies but no manifest.
+
+**Step 4 — Commit all of it together**, then confirm the file landed on the
+default branch, which is where the scheduled run reads from:
+
+```bash
+git add .github/workflows/security-scan.yml .gitignore
+git commit -m "ci: add security scanning"
+```
+
+After pushing, the workflow appears under the repo's **Actions** tab. If it
+does not appear at all, Actions may be disabled for the repo — ask the AI
+department to check.
+
+The workflow file:
 
 ```yaml
 name: 資安掃描
@@ -63,8 +95,12 @@ jobs:
       fail-on-findings: ${{ github.event_name != 'schedule' }}
 ```
 
-**Add this when setting up any new project.** It costs nothing to run and
-catches the most common and most costly mistake: committing an API key.
+It costs nothing to run and catches the most common and most costly mistake:
+committing an API key.
+
+The scan lives in a private repo the whole organisation can call, so the file
+above is all a project needs — there are no rules to copy, and nothing to keep
+up to date when the scanning rules change.
 
 ### What it checks
 
@@ -106,6 +142,16 @@ nothing was checked, which is worse than a known problem.
 The scan reports problems but **cannot block a push or merge** on the current
 GitHub plan. Treat a red scan as something to fix, not something that will be
 caught later automatically.
+
+### If the workflow never runs
+
+A committed workflow that produces no runs at all — no green, no red, nothing
+under the Actions tab — is an organisation-level setting, not a mistake in the
+project. Do not let the user rewrite a correct workflow file chasing it, and do
+not remove the file: it will start working once the setting is resolved.
+
+Tell them the setup is correct and pending, and point them to the AI
+department. Still commit the file in the meantime.
 
 ## Data & Search
 

@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.5.0] - 2026-09-17
+
+### Changed
+- Security scanning is now something the agent sets up unprompted during new-repo creation, not a suggestion to relay: four concrete steps covering the workflow file, the `.env` ignore entry, the dependency manifest, and the commit
+
+### Added
+- Guidance for when the workflow produces no runs at all — an organisation-level setting, so the agent should stop the user from rewriting a correct file or deleting it
+
 ## [0.4.0] - 2026-09-17
 
 ### Added
