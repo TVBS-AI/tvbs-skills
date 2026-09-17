@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.4.0] - 2026-09-17
+
+### Added
+- Security Scanning section: how to add the shared CI scan to a project, what it checks, and how to respond when it goes red
+- Leaked-key response procedure emphasising that revoking the key in the provider's console comes first — deleting the code leaves it in git history
+- Dependency manifest requirement (`requirements.txt` / `package.json`), without which vulnerability scanning silently finds nothing
+- Security trigger keywords in `description` so the skill loads at CI setup and when a scan fails
+
 ## [0.3.0] - 2026-08-25
 
 ### Changed

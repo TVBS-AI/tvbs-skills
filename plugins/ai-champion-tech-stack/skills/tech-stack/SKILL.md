@@ -1,6 +1,6 @@
 ---
 name: tech-stack
-description: "TVBS AI Champion team's approved technology stack. Load this skill before starting any new project, writing code, choosing a database, deploying a service, or picking an API/library — so recommendations stay consistent with tools the team already operates. Triggers on: new project setup, deployment planning, database selection, API integration, architecture decisions, choosing between services or frameworks."
+description: "TVBS AI Champion team's approved technology stack. Load this skill before starting any new project, writing code, choosing a database, deploying a service, or picking an API/library — so recommendations stay consistent with tools the team already operates. Triggers on: new project setup, deployment planning, database selection, API integration, architecture decisions, choosing between services or frameworks, security scanning setup, CI workflow setup, leaked API key, secret in git, dependency vulnerability, failing security scan."
 ---
 
 # TVBS AI Champion Tech Stack
@@ -33,6 +33,79 @@ For up-to-date usage details (API docs, SDK versions, configuration), always loo
 - **Cloudflare** — Workers (serverless edge), R2 (object storage), D1 (edge SQLite), KV, Zero Trust; preferred for lightweight APIs and static-asset services
 - **GCP (Google Cloud Platform)** — Vertex AI, IAM, and general cloud workloads
 - **Zeabur** — PaaS deployment for containerised services; preferred for quick backend deploys
+
+## Security Scanning
+
+All TVBS internal tools should run automated security scanning in CI. The scan
+logic is maintained centrally in `TVBS-AI/ci-shared`, so projects only need a
+short caller file — no need to copy or maintain the scanning rules themselves.
+
+### Adding it to a project
+
+Create `.github/workflows/security-scan.yml`:
+
+```yaml
+name: 資安掃描
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+  schedule:
+    - cron: '0 1 * * 1'    # Mondays 09:00 Taiwan time
+  workflow_dispatch:
+
+jobs:
+  security:
+    uses: TVBS-AI/ci-shared/.github/workflows/security-scan.yml@main
+    with:
+      # Scheduled runs only notify; push/PR runs fail on high-severity findings
+      fail-on-findings: ${{ github.event_name != 'schedule' }}
+```
+
+**Add this when setting up any new project.** It costs nothing to run and
+catches the most common and most costly mistake: committing an API key.
+
+### What it checks
+
+| Area | What it catches |
+|---|---|
+| Leaked secrets | API keys or tokens committed into the repo |
+| Dependency vulnerabilities | Known CVEs in npm / pip packages |
+| Code vulnerabilities | Injection, unsafe parsing, and similar patterns |
+
+Results appear in the **Job Summary** on the Actions page, in Chinese, with
+concrete fix commands.
+
+### When the scan goes red
+
+**If a leaked key is reported — this is urgent, and deleting the code is not
+enough.** The key remains in git history and must be assumed compromised.
+
+Walk the user through, in this order:
+
+1. **Revoke or regenerate the key in the provider's console first.** This is
+   the step that actually stops the bleeding; everything else is cleanup.
+2. Change the code to read the key from an environment variable.
+3. Confirm `.env` is listed in `.gitignore`.
+4. Escalate to the AI department SRE if unsure.
+
+For dependency or code findings, the Job Summary lists the exact upgrade
+command or code change. These are not urgent in the same way — fix them in
+the normal course of work.
+
+### Keeping projects scannable
+
+Python projects **must** have a `requirements.txt` (`pip freeze > requirements.txt`)
+and Node projects a committed `package.json`. Without a dependency manifest,
+vulnerability scanning silently finds nothing — the project looks clean because
+nothing was checked, which is worse than a known problem.
+
+### Note on enforcement
+
+The scan reports problems but **cannot block a push or merge** on the current
+GitHub plan. Treat a red scan as something to fix, not something that will be
+caught later automatically.
 
 ## Data & Search
 
