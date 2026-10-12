@@ -35,6 +35,12 @@
       "description": "TVBS AI Champion team's approved technology stack — guides agents toward tools and platforms already in use so new projects stay consistent with existing infrastructure.",
       "source": "./plugins/ai-champion-tech-stack",
       "category": "productivity"
+    },
+    {
+      "name": "company-wiki",
+      "description": "TVBS company HTML report wiki (wiki.tvbs.ai): connect Claude Code / Codex with one browser approval, then publish, query, and delete reports in personal or team spaces with company/team/private visibility.",
+      "source": "./plugins/company-wiki",
+      "category": "productivity"
     }
   ]
 }

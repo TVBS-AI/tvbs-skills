@@ -1,0 +1,12 @@
+{
+  "name": "company-wiki",
+  "version": "0.2.1",
+  "description": "Connect Claude Code / Codex to the TVBS company wiki with one browser approval, then publish, query, and delete HTML reports in personal or team spaces with company/team/private visibility.",
+  "author": {
+    "name": "TVBS AI Team"
+  },
+  "homepage": "https://github.com/TVBS-AI/tvbs-skills/tree/main/plugins/company-wiki",
+  "repository": "https://github.com/TVBS-AI/tvbs-skills",
+  "license": "MIT",
+  "keywords": ["wiki", "company", "team", "report", "cloudflare", "clerk"]
+}
