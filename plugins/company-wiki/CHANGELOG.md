@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.3.0] - 2026-10-13
+### Added
+- 團隊角色：`owner`（管理者）、`member`（編輯者）、`viewer`（檢視者）。檢視者只能看，skill 選空間時排除這些團隊，403 時以白話說明
+- 團隊目錄 `https://wiki.tvbs.ai/teams`；團隊改名、刪除改由管理者在團隊設定頁操作
+
 ## [0.2.1] - 2026-10-12
 ### Changed
 - 改由公開的 `TVBS-AI/tvbs-skills` 發佈（原本在私有的 `TVBS-AI/agent-skills`），不需要 GitHub org 權限即可安裝；`https://wiki.tvbs.ai/setup` 也改從這裡下載 SKILL.md

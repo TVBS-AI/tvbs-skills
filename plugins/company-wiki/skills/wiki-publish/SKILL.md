@@ -116,14 +116,14 @@ curl -s --max-time 15 -H "Authorization: Bearer $TOKEN" https://wiki.tvbs.ai/api
 
 成功回應：`{ "success": true, "user": { "handle": "…", "email": "…", "name": "…" }, "teams": [{ "slug": "…", "name": "…", "role": "owner" }] }`。
 
-使用回應的 handle 與 teams 選空間，不要猜測身分或團隊 slug。若失敗，依錯誤處理停止，不要繼續上傳。
+使用回應的 handle 與 teams 選空間，不要猜測身分或團隊 slug。`role` 是使用者在該團隊的角色：`owner`（管理者）、`member`（編輯者）可以上傳；`viewer`（檢視者）**只能看、不能上傳或刪除**，選空間時不要提供這些團隊。若失敗，依錯誤處理停止，不要繼續上傳。
 
 ### Step 2：確認資訊
 
 若使用者未提供，依序確認（已提供的不要重問）：
 
 1. **HTML 檔案路徑**（必填）— 必須是 `.html` 或 `.htm`，大小最多 **10 MiB**。
-2. **空間** — 預設 `u/<user.handle>`（自己的個人空間）；團隊空間為 `t/<team.slug>`，從 Step 1 的 teams 選擇。選空間不等於選可見範圍。
+2. **空間** — 預設 `u/<user.handle>`（自己的個人空間）；團隊空間為 `t/<team.slug>`，從 Step 1 中 role 不是 `viewer` 的 teams 選擇。選空間不等於選可見範圍。
 3. **專案名稱** — 預設用當前目錄名稱：
    ```bash
    basename "$PWD"
@@ -244,7 +244,7 @@ curl -s --max-time 15 -X DELETE https://wiki.tvbs.ai/api/doc \
   --data '{"url":"/t/ai-sre/gcp/report.html"}'
 ```
 
-成功回應 `{ "success": true }` 才回報已刪除。團隊成員可管理團隊內非 private 文件；別人的 private 文件不能覆寫或刪除。個人空間只能管理自己的空間；super admin 為管理例外。
+成功回應 `{ "success": true }` 才回報已刪除。團隊的管理者與編輯者可管理團隊內非 private 文件（檢視者不行）；別人的 private 文件不能覆寫或刪除。個人空間只能管理自己的空間；super admin 為管理例外。
 
 ---
 
@@ -253,14 +253,15 @@ curl -s --max-time 15 -X DELETE https://wiki.tvbs.ai/api/doc \
 錯誤 JSON：`{ "success": false, "error": "<訊息>" }`。curl 結束不代表 API 成功；檢查 HTTP 狀態及 JSON（需要觀察狀態時在上述指令加 `-w '\nHTTP %{http_code}\n'`），不要把錯誤回應當成發布／刪除成功。
 
 - **401**：連結已失效（被撤銷，或帳號已停用）。若是存檔的連結碼，執行 `rm -f "$HOME/.config/company-wiki/token"` 後告訴使用者「wiki 的連結失效了，我們重新連結一次」，再走 **[連結流程]**；若使用者設了環境變數 `COMPANY_WIKI_TOKEN`，請他移除或更新。不要反覆用失效的連結碼重試。
-- **403**：沒有該空間／文件的操作權限，或 endpoint 只接受瀏覽器 session。說明服務回傳的 error，不要改可見範圍或繞過權限。
+- **403**：沒有該空間／文件的操作權限（例如使用者在該團隊只是檢視者），或 endpoint 只接受瀏覽器 session。用白話說明原因（檢視者需要請團隊管理者改成「編輯者」），不要改可見範圍或繞過權限。
 - **404**：不存在或不可讀，不可據此宣稱私人文件存在。重新確認使用者提供的空間／路徑。
 - **400／413**：檢查欄位、個人空間不可用 team visibility、HTML 副檔名與 10 MiB 大小限制；修正後再依使用者意圖上傳。
 - 網路或非 JSON 錯誤：回報實際失敗，不捏造連結或宣稱成功。
 
-團隊建立與成員管理、連結管理**只在網頁操作**，用連結碼呼叫這些 endpoint 會得到 403。需要時把網址給使用者：
+團隊建立、改名、刪除與成員管理、連結管理**只在網頁操作**，用連結碼呼叫這些 endpoint 會得到 403。需要時把網址給使用者：
 - 建立團隊：https://wiki.tvbs.ai/teams/new
-- 管理成員：`https://wiki.tvbs.ai/t/<team-slug>/members`
+- 瀏覽／搜尋團隊：https://wiki.tvbs.ai/teams
+- 團隊設定（成員與角色、改名、刪除，限管理者）：`https://wiki.tvbs.ai/t/<team-slug>/members`
 - 查看／撤銷已連結的 AI 助理：https://wiki.tvbs.ai/settings/tokens
 
 ---
