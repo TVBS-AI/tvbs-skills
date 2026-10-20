@@ -1,0 +1,12 @@
+{
+  "name": "roomcord",
+  "version": "0.1.0",
+  "description": "Configure and manage AI agents on RoomCord (WorkCord is RoomCord for Enterprise) — room agents, custom agents, skills, schedules, and API credentials — with your own login through the workcord CLI. Defers exact commands to the CLI's live help so it stays correct as the CLI evolves.",
+  "author": {
+    "name": "TVBS AI Team"
+  },
+  "homepage": "https://github.com/TVBS-AI/tvbs-skills/tree/main/plugins/roomcord",
+  "repository": "https://github.com/TVBS-AI/tvbs-skills",
+  "license": "MIT",
+  "keywords": ["roomcord", "workcord", "agent", "room-agent", "skills"]
+}

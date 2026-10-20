@@ -41,6 +41,12 @@
       "description": "TVBS company HTML report wiki (wiki.tvbs.ai): connect Claude Code / Codex with one browser approval, then publish, query, and delete reports in personal or team spaces with company/team/private visibility.",
       "source": "./plugins/company-wiki",
       "category": "productivity"
+    },
+    {
+      "name": "roomcord",
+      "description": "Configure and manage AI agents on RoomCord (WorkCord is RoomCord for Enterprise) — room agents, custom agents, skills, schedules, and API credentials — with your own login through the workcord CLI.",
+      "source": "./plugins/roomcord",
+      "category": "productivity"
     }
   ]
 }
