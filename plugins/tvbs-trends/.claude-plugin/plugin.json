@@ -1,7 +1,7 @@
 {
   "name": "tvbs-trends",
-  "version": "0.3.0",
-  "description": "Query the TVBS Google Trends system — real-time rising keywords, news opportunity detection (exclusive scoops / urgent follow-ups), keyword volume trends, and historical snapshots. Prefers the npm CLI (npx @tvbs-ai/tvbs-trends), with MCP and REST as fallbacks.",
+  "version": "0.4.0",
+  "description": "Query the TVBS Google Trends system — real-time rising keywords, news opportunity detection (exclusive scoops / urgent follow-ups), topic scans, keyword momentum, and historical snapshots. Uses the npm CLI (npx @tvbs-ai/tvbs-trends@latest) with personal sign-in (auth login); REST as fallback.",
   "author": {
     "name": "TVBS AI Team"
   },
@@ -13,7 +13,6 @@
     "trends",
     "google-trends",
     "news",
-    "cli",
-    "mcp"
+    "cli"
   ]
 }

@@ -20,7 +20,7 @@
     },
     {
       "name": "tvbs-trends",
-      "description": "Query the TVBS Google Trends system — rising keywords, news opportunity detection (exclusive scoops / urgent follow-ups), keyword volume trends, and historical snapshots. Prefers the npm CLI (npx @tvbs-ai/tvbs-trends), with MCP and REST as fallbacks.",
+      "description": "Query the TVBS Google Trends system — rising keywords, news opportunity detection (exclusive scoops / urgent follow-ups), topic scans, keyword momentum, and historical snapshots. Uses the npm CLI (npx @tvbs-ai/tvbs-trends@latest) with personal sign-in; REST as fallback.",
       "source": "./plugins/tvbs-trends",
       "category": "productivity"
     },
