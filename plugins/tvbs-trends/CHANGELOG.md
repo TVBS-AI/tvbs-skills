@@ -7,7 +7,9 @@
 - `news_available` and the Google-news warning: since 2026-10-21 Google Trends no longer serves trend news, so exclusive / follow-up classification is paused and empty `news` does not mean no coverage.
 ### Changed
 - Always run `npx -y @tvbs-ai/tvbs-trends@latest` so a cached older CLI is never used.
-- `--base-url` must be an https origin; credentials are only sent to TVBS servers.
+- Agent login: handle `already_connected`, and finish with a second non-blocking `auth login --no-wait`.
+- Corrected defaults: `interest --geo` is worldwide; `snapshot --window-hours` has none; `--num-news` only applies to trending / opportunities / topic.
+- `--base-url` must be an https origin, and `TVBS_TRENDS_API_KEY` is only sent to TVBS servers (`*.tvbs.ai`) and localhost.
 ### Removed
 - MCP: the remote MCP endpoint was retired; use the CLI, or REST when a shell is not available.
 

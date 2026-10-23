@@ -1,13 +1,13 @@
 ---
 name: trends-query
-description: 查詢 TVBS Google Trends 趨勢系統，取得即時飆升關鍵字、新聞機會偵測（獨家搶快／緊急跟進）、關鍵字聲量走勢與歷史快照。當使用者詢問「現在有什麼熱門話題」「有什麼新聞該搶快或跟進」「某關鍵字／藝人的聲量趨勢」「今天某主題（娛樂／政治…）在紅什麼」「我們（TVBS）漏了什麼題」時使用。涵蓋新聞部、網路文章編輯、娛樂部、公關部等情境。首選用 npm CLI（npx @tvbs-ai/tvbs-trends）呼叫。
+description: 查詢 TVBS Google Trends 趨勢系統，取得即時飆升關鍵字、新聞機會偵測（獨家搶快／緊急跟進）、關鍵字聲量走勢與歷史快照。當使用者詢問「現在有什麼熱門話題」「有什麼新聞該搶快或跟進」「某關鍵字／藝人的聲量趨勢」「今天某主題（娛樂／政治…）在紅什麼」「我們（TVBS）漏了什麼題」時使用。涵蓋新聞部、網路文章編輯、娛樂部、公關部等情境。首選用 npm CLI（npx -y @tvbs-ai/tvbs-trends@latest）呼叫。
 ---
 
 # TVBS Trends
 
 查詢台灣 Google Trends 飆升趨勢，並自動比對 TVBS 新聞資料庫，找出值得報導的新聞機會。
 
-## 首選：用 CLI（`npx @tvbs-ai/tvbs-trends`）
+## 首選：用 CLI（`npx -y @tvbs-ai/tvbs-trends@latest`）
 
 若你的環境能執行 shell 指令，**優先用 CLI** —— 單次呼叫就拿到結果、不必維持連線、輸出是可直接解析的 JSON。一律寫 `@latest`：不帶版本時 npx 可能沿用本機快取的舊版（例如沒有 `auth` 指令的 0.2.0）。
 
@@ -25,14 +25,15 @@ npx -y @tvbs-ai/tvbs-trends@latest opportunities --geo TW --window-hours 24
 
 **個人登入（建議）**：使用者用自己的 TVBS 帳號授權，token 直接存檔，不會出現在對話裡。代理（agent）照這個順序做：
 
-1. 執行 `npx -y @tvbs-ai/tvbs-trends@latest auth login --no-wait`，stdout 的 JSON 有 `verification_uri_complete`（網址）和 `user_code`（代碼）。
-2. 把網址和代碼告訴使用者：「請打開這個網址，用 TVBS 帳號登入，確認代碼是 XXXX-XXXX 後按『允許』」。
-3. 使用者說好了之後，執行 `npx -y @tvbs-ai/tvbs-trends@latest auth login` 完成連結（會接續同一個請求；10 分鐘內有效）。
-4. `auth status` 可確認目前是誰的身分；`auth logout` 撤銷。使用者也可以在 `https://trends.tvbs.ai/account` 管理或撤銷。
+1. 執行 `npx -y @tvbs-ai/tvbs-trends@latest auth login --no-wait`，看 stdout JSON 的 `status`：
+   - `already_connected`：已經登入，直接用即可（要換帳號才加 `--force`）。
+   - `pending`：把 `verification_uri_complete`（網址）和 `user_code`（代碼）告訴使用者：「請打開這個網址，用 TVBS 帳號登入，確認代碼是 XXXX-XXXX 後按『允許』」。
+2. 使用者說好了之後，**再執行一次** `npx -y @tvbs-ai/tvbs-trends@latest auth login --no-wait`（會接續同一個請求、查一次就回）：`connected` 代表完成；仍是 `pending` 代表還沒按允許，請使用者確認後再試。代碼 10 分鐘內有效，過期就從步驟 1 重來。
+3. `auth status` 可確認目前是誰的身分；`auth logout` 撤銷。使用者也可以在 `https://trends.tvbs.ai/account` 管理或撤銷。
 
-代碼（`user_code`）是給使用者核對用的，要顯示給他看；但**絕對不要請使用者把 token 貼進對話**，也不要自己把 token 印出來——登入流程就是為了讓 token 不經過對話。個人 token 90 天後失效，屆時重新 `auth login` 即可。
+代碼（`user_code`）是給使用者核對用的，要顯示給他看；但**絕對不要請使用者把 token 貼進對話**，也不要自己印出或讀取 token 檔（`~/.config/tvbs-trends/`）——登入流程就是為了讓 token 不經過對話。個人 token 90 天後失效，屆時重新 `auth login` 即可。
 
-**團隊 API key**：給伺服器、排程等無人值守的用途，向 AI 部門索取，設成環境變數 `TVBS_TRENDS_API_KEY`。優先順序：`--api-key` > `TVBS_TRENDS_API_KEY` > `auth login` 存的 token。勿把任何憑證寫死在程式碼或提交進 git。
+**團隊 API key**：給伺服器、排程等無人值守的用途，向 AI 部門索取，設成環境變數 `TVBS_TRENDS_API_KEY`（不要請使用者把 key 貼進對話或用 `--api-key` 寫在指令裡）。優先順序：`--api-key` > `TVBS_TRENDS_API_KEY` > `auth login` 存的 token。勿把任何憑證寫死在程式碼或提交進 git。
 
 ### 選對指令（最重要）
 
@@ -57,9 +58,12 @@ npx -y @tvbs-ai/tvbs-trends@latest opportunities --geo TW --window-hours 24
 ### 常用指令範例
 
 ```bash
-# 找新聞機會（最常用）；篩緊急跟進
+# 找新聞機會（最常用）。先看 meta.warnings：Google 新聞暫停期間分類一律為 null，
+# 這時改看 tvbs_similar_news 為空的（＝TVBS 還沒寫）
 npx -y @tvbs-ai/tvbs-trends@latest opportunities --window-hours 24 --num-trends 10 \
-  | jq '.data[] | select(.trend_classification == "Urgent Follow-up") | .keyword'
+  | jq '{warnings: .meta.warnings,
+         follow_up: [.data[] | select(.trend_classification == "Urgent Follow-up") | .keyword],
+         tvbs_not_written: [.data[] | select((.tvbs_similar_news | length) == 0) | .keyword]}'
 
 # 快速看最新熱門（可接受一小時內舊資料）
 npx -y @tvbs-ai/tvbs-trends@latest latest --geo TW --window-hours 4
@@ -82,17 +86,17 @@ npx -y @tvbs-ai/tvbs-trends@latest snapshot --before "2026-07-01T15:00:00+08:00"
 
 ### 共用參數
 
-- `--geo`：地區代碼，預設 `TW`。其他如 `US`、`JP`。
-- `--window-hours`：趨勢窗口，**只接受 `4`、`24`、`48`**（其他值 CLI 會直接報錯）。預設 `24`。`4`＝最新／即時、`24`＝今天、`48`＝這兩天。
-- `--num-news`：每個趨勢附帶幾則新聞，1–30，預設 5。
+- `--geo`：地區代碼，預設 `TW`（`interest` 例外：預設全球）。其他如 `US`、`JP`。
+- `--window-hours`：趨勢窗口，**只接受 `4`、`24`、`48`**（其他值 CLI 會直接報錯）。預設 `24`（`snapshot` 例外：不帶就不限窗口）。`4`＝最新／即時、`24`＝今天、`48`＝這兩天。
+- `--num-news`：只有 `trending`、`opportunities`、`topic` 接受；每個趨勢附帶幾則新聞，1–30，預設 5（Google 新聞暫停期間不會有新聞）。
 
 ### 各指令專屬參數
 
 - **`opportunities`**：`--lookback-hours`（1–168，預設 24，回看多久算「已見過」）、`--num-trends`（預設 10）。
 - **`digest`**：`--format`（`markdown`／`plain`／`json`，預設 markdown）、`--include-all`（預設只列有新聞價值的；帶此旗標全列）、`--max-entries`、`--max-news`（每來源幾則，預設 3）。
-- **`interest`**：`--keywords`（必填，逗號分隔，如 `颱風,地震`）、`--timeframe`（預設 `now 1-H`，如 `now 7-d`）。
+- **`interest`**：`--keywords`（必填，逗號分隔，如 `颱風,地震`）、`--timeframe`（預設 `now 1-H`，如 `now 7-d`）、`--geo`（**預設全球**，要台灣請帶 `--geo TW`）。
 - **`timeline`**：`--keyword`（必填）、`--since`、`--until`（含時區，如 `2026-07-01T00:00:00+08:00`）。
-- **`snapshot`**：`--before`（必填，含時區的 ISO 時間）。
+- **`snapshot`**：`--before`（必填，含時區的 ISO 時間）、`--window-hours`（選填，不帶就不限窗口）。
 - **`topic`**：`--topic`（必填）、`--only-uncovered`（只回 TVBS 還沒寫的）、`--max-results`（最多比對幾個符合的話題，1–50，預設 20）。主題篩選是**近似比對**：分類名稱（娛樂、體育、政治、財經、科技、健康、天氣、遊戲、美食、旅遊…）比對 Google 給每個趨勢的主題分類；其他字（如 AI、某藝人名）比對趨勢的關鍵字與相關詞。`tvbs_similar_news` 為空＝TVBS 還沒寫；`isNew` 一律為 null，要判斷新舊用 `opportunities`。
 - **`momentum`**：`--keywords`（必填，逗號分隔，最多 5 個）、`--timeframe`（預設 `now 7-d`，如 `now 1-d`、`today 1-m`）、`--geo`（預設 `TW`；`--geo ""` 查全球）。比較時序頭尾兩點，變化達 ±`data.threshold_pct` 才算上升／退燒。**只看聲量，不判斷正負面情緒**；被問「是不是負面新聞」時要照實說明，情緒需人工看報導。`meta.warnings` 若說查無聲量資料，代表爬取失敗，不是聲量持平。
 
@@ -175,8 +179,8 @@ CLI 預設輸出與 REST 回應都是同一種信封：
 
 ## 常見情境對應
 
-- 「現在有什麼該搶快的獨家？」→ `opportunities --window-hours 4`，篩 `trend_classification == "Exclusive Opportunity"`
-- 「有哪些題大家在報我們漏了？」→ `opportunities`，篩 `"Urgent Follow-up"`
+- 「現在有什麼該搶快的獨家？」→ `opportunities --window-hours 4`，篩 `trend_classification == "Exclusive Opportunity"`（Google 新聞暫停期間分類為 null，改列 `tvbs_similar_news` 為空的竄升話題，並說明分類暫停）
+- 「有哪些題大家在報我們漏了？」→ `opportunities`，篩 `"Urgent Follow-up"`（同上）
 - 「今天最熱的話題？」→ `latest --window-hours 24`
 - 「『某藝人』最近聲量有變化嗎？」→ `timeline --keyword 某藝人`
 - 「昨天下午三點當時在紅什麼？」→ `snapshot --before <昨天15:00含時區>`
