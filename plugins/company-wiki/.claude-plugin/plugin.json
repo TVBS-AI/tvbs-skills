@@ -1,7 +1,7 @@
 {
   "name": "company-wiki",
-  "version": "0.3.0",
-  "description": "Connect Claude Code / Codex to the TVBS company wiki with one browser approval, then publish, query, and delete HTML reports in personal or team spaces with company/team/private visibility.",
+  "version": "0.4.0",
+  "description": "Connect Claude Code / Codex to the TVBS company wiki with one browser approval, then publish, query, and delete (to a 30-day trash) HTML reports in personal or team spaces with company/team/private visibility.",
   "author": {
     "name": "TVBS AI Team"
   },

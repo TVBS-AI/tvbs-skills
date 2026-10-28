@@ -141,7 +141,7 @@ curl -s --max-time 15 -H "Authorization: Bearer $TOKEN" https://wiki.tvbs.ai/api
 
    管理例外：super admin 可讀取與管理所有文件，包含 private 文件。
 
-**檔名與覆寫：** 服務將 `.htm` 統一為 `.html`，檔名會正規化；中文等非 ASCII 檔名會使用 `doc-<YYYYMMDDHHmmss>.html`（台北時間），標題仍保留 `<title>` 或原始檔名。同空間／專案／正規化檔名再次上傳會覆寫；若已知目標存在，先確認覆寫意圖。最終連結以 API 回應為準，不自行拼出檔名。
+**檔名與覆寫：** 服務將 `.htm` 統一為 `.html`，檔名會正規化；中文等非 ASCII 檔名會使用 `doc-<YYYYMMDDHHmmss>.html`（台北時間），標題仍保留 `<title>` 或原始檔名。同空間／專案／正規化檔名再次上傳會覆寫（前一版會保留成舊版，可在網頁還原）；若已知目標存在，先確認覆寫意圖。文件可能被使用者在網頁上移動到別的空間，更新既有文件前先用 **[查詢流程]** 確認它目前的 `space`，不要沿用舊的空間，否則會在舊位置另外建立一份新文件。最終連結以 API 回應為準，不自行拼出檔名。
 
 ### Step 3：推薦 Tags
 
@@ -244,7 +244,7 @@ curl -s --max-time 15 -X DELETE https://wiki.tvbs.ai/api/doc \
   --data '{"url":"/t/ai-sre/gcp/report.html"}'
 ```
 
-成功回應 `{ "success": true }` 才回報已刪除。團隊的管理者與編輯者可管理團隊內非 private 文件（檢視者不行）；別人的 private 文件不能覆寫或刪除。個人空間只能管理自己的空間；super admin 為管理例外。
+成功回應 `{ "success": true, "trashed": true, "restorableDays": 30 }` 才回報刪除成功，並告訴使用者：文件已移到垃圾桶，30 天內可在 https://wiki.tvbs.ai/trash 還原，之後自動永久刪除。還原與立即永久刪除只能在網頁操作，連結碼做不到，不要嘗試。團隊的管理者與編輯者可管理團隊內非 private 文件（檢視者不行）；別人的 private 文件不能覆寫或刪除。個人空間只能管理自己的空間；super admin 為管理例外。
 
 ---
 
@@ -258,11 +258,13 @@ curl -s --max-time 15 -X DELETE https://wiki.tvbs.ai/api/doc \
 - **400／413**：檢查欄位、個人空間不可用 team visibility、HTML 副檔名與 10 MiB 大小限制；修正後再依使用者意圖上傳。
 - 網路或非 JSON 錯誤：回報實際失敗，不捏造連結或宣稱成功。
 
-團隊建立、改名、刪除與成員管理、連結管理**只在網頁操作**，用連結碼呼叫這些 endpoint 會得到 403。需要時把網址給使用者：
+團隊建立、改名、刪除與成員管理、連結管理，以及修改可見範圍、移動文件、還原舊版、垃圾桶**只在網頁操作**，用連結碼呼叫這些 endpoint 會得到 403。需要時把網址給使用者：
 - 建立團隊：https://wiki.tvbs.ai/teams/new
 - 瀏覽／搜尋團隊：https://wiki.tvbs.ai/teams
 - 團隊設定（成員與角色、改名、刪除，限管理者）：`https://wiki.tvbs.ai/t/<team-slug>/members`
 - 查看／撤銷已連結的 AI 助理：https://wiki.tvbs.ai/settings/tokens
+- 垃圾桶（還原刪除的文件）：https://wiki.tvbs.ai/trash
+- 移動文件到其他空間、修改可見範圍、查看舊版與修改記錄：在 https://wiki.tvbs.ai/docs 的文件列表按「移動」、可見範圍選單或「記錄」（移動限上傳者本人）
 
 ---
 
