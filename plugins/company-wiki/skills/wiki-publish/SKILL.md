@@ -122,7 +122,7 @@ curl -s --max-time 15 -H "Authorization: Bearer $TOKEN" https://wiki.tvbs.ai/api
 
 若使用者未提供，依序確認（已提供的不要重問）：
 
-1. **HTML 檔案路徑**（必填）— 必須是 `.html` 或 `.htm`，大小最多 **10 MiB**。
+1. **HTML 檔案路徑**（必填）— 必須是 `.html` 或 `.htm`，大小最多 **50 MiB**。檔案超過 10 MB，或內嵌了截圖、照片時，先依 **[圖片處理]** 壓縮。
 2. **空間** — 預設 `u/<user.handle>`（自己的個人空間）；團隊空間為 `t/<team.slug>`，從 Step 1 中 role 不是 `viewer` 的 teams 選擇。選空間不等於選可見範圍。
 3. **專案名稱** — 預設用當前目錄名稱：
    ```bash
@@ -169,7 +169,7 @@ curl -s --max-time 15 -H "Authorization: Bearer $TOKEN" https://wiki.tvbs.ai/api
 
 ```bash
 TOKEN="${COMPANY_WIKI_TOKEN:-$(cat "$HOME/.config/company-wiki/token" 2>/dev/null)}"
-curl -s --max-time 60 -X POST https://wiki.tvbs.ai/api/publish \
+curl -s --max-time 300 -X POST https://wiki.tvbs.ai/api/publish \
   -H "Authorization: Bearer $TOKEN" \
   -F "file=@<filepath>" \
   --form-string "space=<u/handle 或 t/team-slug>" \
@@ -193,6 +193,58 @@ Report 已發布！
 ```
 
 文件連結仍需要公司登入及讀取權限；取得連結不代表公開給網際網路。報告頁使用 CSP sandbox 隔離，依賴 cookie／localStorage 的 script 可能無法運作。
+
+---
+
+## [圖片處理] 報告裡的圖片
+
+wiki 只收一個 HTML 檔，所以圖片要用 base64 內嵌（`data:image/...`），或連到外部網址；`./chart.png` 這種相對路徑讀不到。base64 會讓圖片大約變大 1/3，一張沒處理的 Retina 截圖就可能有 5–10 MB。產生或上傳報告前：
+
+1. **圖表不要用截圖**：改用 inline SVG、HTML／CSS 畫，或從 CDN 載入圖表函式庫（例如 Chart.js），通常只有幾 KB，放大也清楚。
+2. **照片、截圖要縮小並轉成 WebP**：最長邊縮到 1600 px，品質約 80，並去掉拍攝資訊（EXIF）。報告內文的顯示寬度用 1600 px 已經足夠。WebP 支援透明背景，所有現代瀏覽器都能顯示。動畫 GIF 保留原樣，或改成靜態截圖。
+3. **內嵌後、上傳前，用下面的腳本把 HTML 裡的大圖再壓一次**：
+   - 只處理 50 KB 以上的 PNG／JPEG／WebP 等點陣圖。
+   - 只會縮小，不會放大。
+   - 壓了沒有變小的圖會保留原樣。
+   - 原檔不動，結果另存一份新檔。
+   - 這個腳本需要 Python 的 Pillow 套件。如果出現 `No module named 'PIL'`，先問使用者能不能安裝（`python3 -m pip install --user pillow`），不要自己裝。
+
+```bash
+python3 -I - "<原始.html>" "<壓縮後.html>" <<'PY'
+import base64, io, re, sys
+from PIL import Image
+
+MAX_SIDE, QUALITY, MIN_BYTES = 1600, 80, 50_000
+src, dst = sys.argv[1], sys.argv[2]
+html = open(src, encoding='utf-8').read()
+count = 0
+
+def shrink(m):
+    global count
+    raw = base64.b64decode(m.group(2))
+    if len(raw) < MIN_BYTES:
+        return m.group(0)
+    img = Image.open(io.BytesIO(raw))
+    if getattr(img, 'n_frames', 1) > 1:  # 動畫保留原樣
+        return m.group(0)
+    if img.format == 'WEBP' and max(img.size) <= MAX_SIDE:  # 已經處理過，不再重壓
+        return m.group(0)
+    img = img.convert('RGBA' if img.mode in ('RGBA', 'LA', 'P', 'PA') else 'RGB')
+    img.thumbnail((MAX_SIDE, MAX_SIDE))
+    out = io.BytesIO()
+    img.save(out, 'WEBP', quality=QUALITY, method=6)
+    if out.tell() >= len(raw):
+        return m.group(0)
+    count += 1
+    return 'data:image/webp;base64,' + base64.b64encode(out.getvalue()).decode()
+
+html = re.sub(r'data:image/(png|jpe?g|bmp|tiff|webp);base64,([A-Za-z0-9+/=\s]+)', shrink, html)
+open(dst, 'w', encoding='utf-8').write(html)
+print(f'壓縮 {count} 張圖：{len(open(src, "rb").read()) / 1e6:.1f} MB → {len(html.encode()) / 1e6:.1f} MB')
+PY
+```
+
+壓縮後上傳新的那份檔案。圖上有細小文字的截圖（表格、程式碼、儀表板）請使用者打開看一下：字看不清楚時，把 `QUALITY` 改成 90，或把 `MAX_SIDE` 改成 2400，再跑一次。壓縮後仍超過 50 MiB 時，把部分圖片改成外部連結，或把報告拆成幾份。
 
 ---
 
@@ -223,7 +275,7 @@ curl -s --max-time 15 -G https://wiki.tvbs.ai/api/docs \
 
 ```bash
 TOKEN="${COMPANY_WIKI_TOKEN:-$(cat "$HOME/.config/company-wiki/token" 2>/dev/null)}"
-curl -s --max-time 15 -G https://wiki.tvbs.ai/api/doc \
+curl -s --max-time 120 -G https://wiki.tvbs.ai/api/doc \
   -H "Authorization: Bearer $TOKEN" \
   --data-urlencode 'url=/<space>/<project>/<filename>.html'
 ```
@@ -256,7 +308,7 @@ curl -s --max-time 15 -X DELETE https://wiki.tvbs.ai/api/doc \
 - **403**：沒有該空間／文件的操作權限（例如使用者在該團隊只是檢視者），或 endpoint 只接受瀏覽器 session。用白話說明原因（檢視者需要請團隊管理者改成「編輯者」），不要改可見範圍或繞過權限。
 - **404**：不存在或不可讀，不可據此宣稱私人文件存在。重新確認使用者提供的空間／路徑。
 - **409**（上傳時）：上傳期間剛好有人在同一個網址上傳、把別的文件移到這裡，或把要覆蓋的文件移走了；這次上傳沒有寫入。不要自動重試覆蓋：先用 `/api/docs` 確認那個網址現在是哪份文件、在哪個空間，告訴使用者發生了什麼，再依他的意思重新上傳。
-- **400／413**：檢查欄位、個人空間不可用 team visibility、HTML 副檔名與 10 MiB 大小限制；修正後再依使用者意圖上傳。
+- **400／413**：檢查欄位、個人空間不可用 team visibility、HTML 副檔名與 50 MiB 大小限制；413 時先依 **[圖片處理]** 壓縮，修正後再依使用者意圖上傳。
 - 網路或非 JSON 錯誤：回報實際失敗，不捏造連結或宣稱成功。
 
 團隊建立、改名、刪除與成員管理、連結管理，以及修改可見範圍、移動文件、還原舊版、垃圾桶**只在網頁操作**，用連結碼呼叫這些 endpoint 會得到 403。需要時把網址給使用者：
@@ -287,7 +339,7 @@ curl -s --max-time 15 -X DELETE https://wiki.tvbs.ai/api/doc \
 
 **使用者回答「要」後：**
 
-1. 根據對話內容與任務結果，產生一份完整的 HTML 報告（artifact 格式）
+1. 根據對話內容與任務結果，產生一份完整的 HTML 報告（artifact 格式）；圖表與圖片依 **[圖片處理]** 處理
 2. 報告內容包含：
    - 任務背景與目標
    - 主要發現 / 結論
