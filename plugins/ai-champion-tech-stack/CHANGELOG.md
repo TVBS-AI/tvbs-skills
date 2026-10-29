@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.6.0] - 2026-10-30
+
+### Removed
+- Zeabur from the deployment platforms and from the recommended MCP servers — Zeabur shuts down on 2026-12-31
+
+### Changed
+- Deployment now points only to GCP (Cloud Run, Cloud SQL, `asia-east1`) and Cloudflare, with a rule for choosing between them; Cloud Run takes over the containerised-backend role Zeabur used to fill
+- The agent is told not to deploy anything new to Zeabur and to send owners of projects still running there to the AI department SRE; the `description` now mentions Zeabur deploy requests so the skill loads on them
+- Cloudflare work goes through the `cf` CLI instead of Wrangler, following Cloudflare's own agent guidance: new Cloudflare CLI setup steps, and the recommended `wrangler` skill is replaced by `cf-cli`; Wrangler stays only for projects that already have a Wrangler config file
+
+### Fixed
+- The Cloudflare plugin install command now uses the `cloudflare/skills` marketplace and names the `cloudflare@cloudflare` plugin to install
+
 ## [0.5.1] - 2026-10-12
 
 ### Fixed

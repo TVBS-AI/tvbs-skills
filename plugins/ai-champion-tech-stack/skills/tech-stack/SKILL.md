@@ -1,6 +1,6 @@
 ---
 name: tech-stack
-description: "TVBS AI Champion team's approved technology stack. Load this skill before starting any new project, writing code, choosing a database, deploying a service, or picking an API/library — so recommendations stay consistent with tools the team already operates. Triggers on: new project setup, deployment planning, database selection, API integration, architecture decisions, choosing between services or frameworks, security scanning setup, CI workflow setup, leaked API key, secret in git, dependency vulnerability, failing security scan."
+description: "TVBS AI Champion team's approved technology stack. Load this skill before starting any new project, writing code, choosing a database, deploying a service (including any request to deploy to Zeabur), or picking an API/library — so recommendations stay consistent with tools the team already operates. Triggers on: new project setup, deployment planning, database selection, API integration, architecture decisions, choosing between services or frameworks, security scanning setup, CI workflow setup, leaked API key, secret in git, dependency vulnerability, failing security scan."
 ---
 
 # TVBS AI Champion Tech Stack
@@ -30,9 +30,12 @@ For up-to-date usage details (API docs, SDK versions, configuration), always loo
 
 ## Cloud & Deployment
 
-- **Cloudflare** — Workers (serverless edge), R2 (object storage), D1 (edge SQLite), KV, Zero Trust; preferred for lightweight APIs and static-asset services
-- **GCP (Google Cloud Platform)** — Vertex AI, IAM, and general cloud workloads
-- **Zeabur** — PaaS deployment for containerised services; preferred for quick backend deploys
+Deploy to **GCP or Cloudflare** — these are the only two platforms the team operates.
+
+- **GCP (Google Cloud Platform)** — Cloud Run for containerised backends, Cloud SQL for managed PostgreSQL, Vertex AI, IAM; default region `asia-east1`. Use it when a service needs a full container runtime, long-running processes, or a managed database
+- **Cloudflare** — Workers (serverless edge), R2 (object storage), D1 (edge SQLite), KV, Zero Trust; preferred for lightweight APIs and static-asset services, and as the edge (DNS, Zero Trust) in front of GCP services
+
+**Do not deploy to Zeabur.** Zeabur shuts down on 2026-12-31 and is no longer part of the stack. If a project still runs there, do not extend it — point the owner to the AI department SRE for migration.
 
 ## Security Scanning
 
@@ -178,8 +181,25 @@ Install the following MCP servers and skills to give your coding agent (Claude C
 |-----|---------|
 | **context7** | Looks up the latest SDK/library docs on demand — prevents agents from using outdated API signatures |
 | **deepwiki** | Reads GitHub project architecture and design docs — useful when integrating open-source tools |
-| **zeabur** | Lets the agent deploy services, read logs, and manage env vars directly via Zeabur |
 | **cloudflare** | Lets the agent manage Workers, R2, D1, and KV directly |
+
+### Cloudflare CLI
+
+Use Cloudflare's `cf` CLI for Cloudflare work, not Wrangler. Install it globally and sign in once (sign-in opens a browser page you approve yourself):
+
+```bash
+npm install -g cf
+cf auth login
+```
+
+Then add this line to your user-level `CLAUDE.md` or `AGENTS.md` so the agent reaches for `cf` by default:
+
+```md
+When interacting with Cloudflare, use the `cf` CLI unless the project has a
+Wrangler configuration file.
+```
+
+Projects that already have a `wrangler.jsonc`, `wrangler.json`, or `wrangler.toml` keep using Wrangler.
 
 ### Skills
 
@@ -195,12 +215,12 @@ Install the following MCP servers and skills to give your coding agent (Claude C
 |-------|---------|
 | **elasticsearch-master** | Index design, query patterns, mapping best practices, and zero-downtime deployment |
 
-**From `cloudflare` plugin** (`/plugin marketplace add cloudflare`):
+**From `cloudflare` plugin** (`/plugin marketplace add cloudflare/skills`, then `/plugin install cloudflare@cloudflare`):
 
 | Skill | Purpose |
 |-------|---------|
 | **cloudflare** | Best practices and patterns for Cloudflare Workers/R2/D1/KV |
-| **wrangler** | Correct CLI syntax for deploying and managing Workers |
+| **cf-cli** | Finds and runs the right `cf` commands for deploying and managing Cloudflare resources |
 | **workers-best-practices** | Guards against common Workers mistakes (floating promises, global state, etc.) |
 
 **From `langfuse` plugin** (`/plugin marketplace add langfuse/skills`):
