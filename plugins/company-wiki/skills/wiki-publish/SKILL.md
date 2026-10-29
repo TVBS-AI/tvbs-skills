@@ -201,50 +201,76 @@ Report 已發布！
 wiki 只收一個 HTML 檔，所以圖片要用 base64 內嵌（`data:image/...`），或連到外部網址；`./chart.png` 這種相對路徑讀不到。base64 會讓圖片大約變大 1/3，一張沒處理的 Retina 截圖就可能有 5–10 MB。產生或上傳報告前：
 
 1. **圖表不要用截圖**：改用 inline SVG、HTML／CSS 畫，或從 CDN 載入圖表函式庫（例如 Chart.js），通常只有幾 KB，放大也清楚。
-2. **照片、截圖要縮小並轉成 WebP**：最長邊縮到 1600 px，品質約 80，並去掉拍攝資訊（EXIF）。報告內文的顯示寬度用 1600 px 已經足夠。WebP 支援透明背景，所有現代瀏覽器都能顯示。動畫 GIF 保留原樣，或改成靜態截圖。
+2. **照片、截圖要縮小並轉成 WebP**：寬度縮到 1600 px，品質約 80，並去掉拍攝資訊（EXIF）。報告內文的顯示寬度用 1600 px 已經足夠。長截圖只限制寬度，不會被壓扁。WebP 支援透明背景，所有現代瀏覽器都能顯示。動畫 GIF 保留原樣，或改成靜態截圖。
 3. **內嵌後、上傳前，用下面的腳本把 HTML 裡的大圖再壓一次**：
    - 只處理 50 KB 以上的 PNG／JPEG／WebP 等點陣圖。
    - 只會縮小，不會放大。
-   - 壓了沒有變小的圖會保留原樣。
+   - 手機照片會先轉正。
+   - 壓了沒有變小、或讀不出來的圖會保留原樣。
    - 原檔不動，結果另存一份新檔。
-   - 這個腳本需要 Python 的 Pillow 套件。如果出現 `No module named 'PIL'`，先問使用者能不能安裝（`python3 -m pip install --user pillow`），不要自己裝。
+
+先確認有沒有可用的 Pillow：
 
 ```bash
-python3 -I - "<原始.html>" "<壓縮後.html>" <<'PY'
-import base64, io, re, sys
-from PIL import Image
+PY="$HOME/.config/company-wiki/py/bin/python"
+[ -x "$PY" ] || PY=python3
+"$PY" -I -c 'import PIL' 2>/dev/null && echo "PILLOW_OK $PY" || echo NEED_PILLOW
+```
 
-MAX_SIDE, QUALITY, MIN_BYTES = 1600, 80, 50_000
+如果出現 `NEED_PILLOW`，先問使用者：「壓縮圖片需要安裝一個小工具（Pillow），裝在 wiki 自己的資料夾裡、不影響其他程式，可以嗎？」使用者同意後才執行下面的安裝，然後把 `PY` 設成 `$HOME/.config/company-wiki/py/bin/python`。不要用 `sudo`、`--break-system-packages` 或其他方式另外安裝。
+
+```bash
+python3 -m venv "$HOME/.config/company-wiki/py" && "$HOME/.config/company-wiki/py/bin/pip" install --quiet pillow
+```
+
+接著用同一個 `$PY` 執行壓縮：
+
+```bash
+"$PY" -I - "<原始.html>" "<壓縮後.html>" <<'PY'
+import base64, io, re, sys
+from PIL import Image, ImageOps
+
+MAX_WIDTH, QUALITY, MIN_BYTES, WEBP_MAX_SIDE = 1600, 80, 50_000, 16383
 src, dst = sys.argv[1], sys.argv[2]
 html = open(src, encoding='utf-8').read()
-count = 0
+done = skipped = 0
 
 def shrink(m):
-    global count
-    raw = base64.b64decode(m.group(2))
-    if len(raw) < MIN_BYTES:
+    global done, skipped
+    try:
+        raw = base64.b64decode(m.group(2))
+        if len(raw) < MIN_BYTES:
+            return m.group(0)
+        img = Image.open(io.BytesIO(raw))
+        if getattr(img, 'n_frames', 1) > 1:  # 動畫保留原樣
+            return m.group(0)
+        if img.format == 'WEBP' and img.width <= MAX_WIDTH:  # 已經處理過，不再重壓
+            return m.group(0)
+        icc = img.info.get('icc_profile')  # 色彩描述檔要保留，否則顏色會偏
+        transparent = img.mode in ('RGBA', 'LA', 'PA') or 'transparency' in img.info
+        img = ImageOps.exif_transpose(img)  # 手機照片先轉正，再去掉拍攝資訊
+        img = img.convert('RGBA' if transparent else 'RGB')
+        if img.width > MAX_WIDTH:  # 只限制寬度，長截圖才看得清楚
+            img = img.resize((MAX_WIDTH, round(img.height * MAX_WIDTH / img.width)), Image.LANCZOS)
+        if img.height > WEBP_MAX_SIDE:  # WebP 放不下的超長圖保留原樣
+            return m.group(0)
+        out = io.BytesIO()
+        img.save(out, 'WEBP', quality=QUALITY, method=6, icc_profile=icc)
+        if out.tell() >= len(raw):
+            return m.group(0)
+        done += 1
+        return 'data:image/webp;base64,' + base64.b64encode(out.getvalue()).decode()
+    except Exception:  # 讀不出來的圖保留原樣，不影響其他圖
+        skipped += 1
         return m.group(0)
-    img = Image.open(io.BytesIO(raw))
-    if getattr(img, 'n_frames', 1) > 1:  # 動畫保留原樣
-        return m.group(0)
-    if img.format == 'WEBP' and max(img.size) <= MAX_SIDE:  # 已經處理過，不再重壓
-        return m.group(0)
-    img = img.convert('RGBA' if img.mode in ('RGBA', 'LA', 'P', 'PA') else 'RGB')
-    img.thumbnail((MAX_SIDE, MAX_SIDE))
-    out = io.BytesIO()
-    img.save(out, 'WEBP', quality=QUALITY, method=6)
-    if out.tell() >= len(raw):
-        return m.group(0)
-    count += 1
-    return 'data:image/webp;base64,' + base64.b64encode(out.getvalue()).decode()
 
-html = re.sub(r'data:image/(png|jpe?g|bmp|tiff|webp);base64,([A-Za-z0-9+/=\s]+)', shrink, html)
+html = re.sub(r'data:image/(png|jpe?g|bmp|tiff|webp);base64,([A-Za-z0-9+/]+=*)', shrink, html)
 open(dst, 'w', encoding='utf-8').write(html)
-print(f'壓縮 {count} 張圖：{len(open(src, "rb").read()) / 1e6:.1f} MB → {len(html.encode()) / 1e6:.1f} MB')
+print(f'壓縮 {done} 張圖，跳過 {skipped} 張讀不出來的：{len(open(src, "rb").read()) / 1e6:.1f} MB → {len(html.encode()) / 1e6:.1f} MB')
 PY
 ```
 
-壓縮後上傳新的那份檔案。圖上有細小文字的截圖（表格、程式碼、儀表板）請使用者打開看一下：字看不清楚時，把 `QUALITY` 改成 90，或把 `MAX_SIDE` 改成 2400，再跑一次。壓縮後仍超過 50 MiB 時，把部分圖片改成外部連結，或把報告拆成幾份。
+壓縮後上傳新的那份檔案。圖上有細小文字的截圖（表格、程式碼、儀表板）請使用者打開看一下：字看不清楚時，把 `QUALITY` 改成 90，或把 `MAX_WIDTH` 改成 2400，再跑一次。壓縮後仍超過 50 MiB 時，把部分圖片改成外部連結，或把報告拆成幾份。
 
 ---
 
