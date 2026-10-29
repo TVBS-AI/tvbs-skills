@@ -217,15 +217,17 @@ PY="$HOME/.config/company-wiki/py/bin/python"
 "$PY" -I -c 'import PIL' 2>/dev/null && echo "PILLOW_OK $PY" || echo NEED_PILLOW
 ```
 
-如果出現 `NEED_PILLOW`，先問使用者：「壓縮圖片需要安裝一個小工具（Pillow），裝在 wiki 自己的資料夾裡、不影響其他程式，可以嗎？」使用者同意後才執行下面的安裝，然後把 `PY` 設成 `$HOME/.config/company-wiki/py/bin/python`。不要用 `sudo`、`--break-system-packages` 或其他方式另外安裝。
+如果出現 `NEED_PILLOW`，先問使用者：「壓縮圖片需要安裝一個小工具（Pillow），裝在 wiki 自己的資料夾裡、不影響其他程式，可以嗎？」使用者同意後才執行下面的安裝。不要用 `sudo`、`--break-system-packages` 或其他方式另外安裝。
 
 ```bash
 python3 -m venv "$HOME/.config/company-wiki/py" && "$HOME/.config/company-wiki/py/bin/pip" install --quiet pillow
 ```
 
-接著用同一個 `$PY` 執行壓縮：
+接著執行壓縮（開頭兩行跟檢查時一樣，每次都要重新設定）：
 
 ```bash
+PY="$HOME/.config/company-wiki/py/bin/python"
+[ -x "$PY" ] || PY=python3
 "$PY" -I - "<原始.html>" "<壓縮後.html>" <<'PY'
 import base64, io, re, sys
 from PIL import Image, ImageOps
@@ -246,7 +248,9 @@ def shrink(m):
             return m.group(0)
         if img.format == 'WEBP' and img.width <= MAX_WIDTH:  # 已經處理過，不再重壓
             return m.group(0)
-        icc = img.info.get('icc_profile')  # 色彩描述檔要保留，否則顏色會偏
+        icc = img.info.get('icc_profile')  # RGB 的色彩描述檔要保留，否則顏色會偏
+        if icc and icc[16:20] != b'RGB ':  # CMYK、灰階的描述檔對不上轉換後的 RGB
+            icc = None
         transparent = img.mode in ('RGBA', 'LA', 'PA') or 'transparency' in img.info
         img = ImageOps.exif_transpose(img)  # 手機照片先轉正，再去掉拍攝資訊
         img = img.convert('RGBA' if transparent else 'RGB')
@@ -264,7 +268,7 @@ def shrink(m):
         skipped += 1
         return m.group(0)
 
-html = re.sub(r'data:image/(png|jpe?g|bmp|tiff|webp);base64,([A-Za-z0-9+/]+=*)', shrink, html)
+html = re.sub(r'data:image/(png|jpe?g|bmp|tiff|webp);base64,([A-Za-z0-9+/\r\n]+=*)', shrink, html)
 open(dst, 'w', encoding='utf-8').write(html)
 print(f'壓縮 {done} 張圖，跳過 {skipped} 張讀不出來的：{len(open(src, "rb").read()) / 1e6:.1f} MB → {len(html.encode()) / 1e6:.1f} MB')
 PY
