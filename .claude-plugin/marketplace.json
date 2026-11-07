@@ -38,7 +38,7 @@
     },
     {
       "name": "company-wiki",
-      "description": "TVBS company HTML report wiki (wiki.tvbs.ai): connect Claude Code / Codex with one browser approval, then publish, search, organize, trash and restore reports, and manage teams and members — anything the web can do.",
+      "description": "TVBS company HTML report wiki (wiki.tvbs.ai): connect Claude Code / Codex with one browser approval, write readable reports, then publish, search, organize, trash and restore them, and manage teams and members — anything the web can do.",
       "source": "./plugins/company-wiki",
       "category": "productivity"
     },
