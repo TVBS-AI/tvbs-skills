@@ -1,7 +1,7 @@
 {
   "name": "company-wiki",
   "version": "0.6.0",
-  "description": "Connect Claude Code / Codex to the TVBS company wiki with one browser approval, write reports colleagues can follow (laid out with answer-me-with-html when installed), then do anything the web can: publish, search, organize (title, tags, project, visibility, move, versions), trash and restore HTML reports, and manage teams and members.",
+  "description": "Connect Claude Code / Codex to the TVBS company wiki with one browser approval, write reports colleagues can follow (laid out with the html-report skill when installed), then do anything the web can: publish, search, organize (title, tags, project, visibility, move, versions), trash and restore HTML reports, and manage teams and members.",
   "author": {
     "name": "TVBS AI Team"
   },
