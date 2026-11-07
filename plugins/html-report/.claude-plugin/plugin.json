@@ -1,0 +1,12 @@
+{
+  "name": "html-report",
+  "version": "0.1.0",
+  "description": "Turn an answer, research result, comparison or incident review into one readable HTML report page: the agent writes a short Markdown draft and the bundled CLI does layout, diagrams, charts and light/dark themes, producing a single offline file ready for the TVBS company wiki. Engine adapted from answer-me-with-html (MIT) without the page colophon or update check.",
+  "author": {
+    "name": "TVBS AI Team"
+  },
+  "homepage": "https://github.com/TVBS-AI/tvbs-skills/tree/main/plugins/html-report",
+  "repository": "https://github.com/TVBS-AI/tvbs-skills",
+  "license": "MIT",
+  "keywords": ["report", "html", "diagram", "chart", "wiki"]
+}
