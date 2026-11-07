@@ -172,7 +172,7 @@ done
 
 - 有印出 `AM=<路徑>`：已經安裝。讀 `am.mjs` 上一層資料夾的 `SKILL.md`，照它做；它指令裡的 `${CLAUDE_SKILL_DIR}` 就是那個上一層資料夾。你的 skill 清單裡已經有 `html-report` 時，直接叫用它也可以。
 - 沒有安裝：先問使用者「TVBS 有一個排版報告的 skill（html-report），裝好之後報告會比較好讀、也產生得比較快，要幫你裝嗎？」使用者同意才裝：
-  - Claude Code：執行 `claude plugin marketplace add TVBS-AI/tvbs-skills`（已經加過時會說已存在，不影響），再執行 `claude plugin install html-report@tvbs-skills`。這次對話的 skill 清單還不會出現它，直接讀檔案即可；之後請使用者執行 `/reload-plugins`。
+  - Claude Code：執行 `claude plugin marketplace add TVBS-AI/tvbs-skills`（若提示已存在，可以忽略），再執行 `claude plugin install html-report@tvbs-skills`。這次對話的 skill 清單還不會出現它，直接讀檔案即可；之後請使用者執行 `/reload-plugins`。
   - Codex 或其他工具：執行 `npx -y skills add TVBS-AI/tvbs-skills --skill html-report -g -y -a codex`（把 `codex` 換成你的工具名稱）。
   - 裝完再跑一次上面的確認指令。沒有 Node.js 20 以上時，先告訴使用者要裝 Node.js，使用者同意後才裝。
   - 使用者不想裝，或安裝失敗時，改用做法 B，不要因此卡住上傳。
