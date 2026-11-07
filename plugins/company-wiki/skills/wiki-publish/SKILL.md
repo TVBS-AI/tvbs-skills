@@ -293,7 +293,7 @@ API 的 multipart 欄位為 `file`（必填）及 `space`、`project`、`title`�
 
 ### Step 5：回報結果
 
-先確認 JSON 的 `success` 為 true；成功回應包含 `url`、`indexUrl`、`visibility`。使用**實際回傳值**回報：`url` 可能跟你上傳的位置不同，因為文件被移到別的專案或空間後，用舊位置上傳會直接更新搬過去的那份。這時專案以 `url` 裡的為準（`/t/<team>/<project>/<檔名>` 或 `/u/<handle>/<project>/<檔名>`），並告訴使用者「這份文件之前已經移到 <新位置>，我更新的是那一份」；之後更新這份文件都用新位置。
+先確認 JSON 的 `success` 為 true；成功回應包含 `url`、`indexUrl`、`visibility`。使用**實際回傳值**回報。回應有 `movedFrom` 時，表示這份文件之前已經被移到別的專案或空間，wiki 更新的是搬過去的那一份：專案以 `url` 裡的為準（`/t/<team>/<project>/<檔名>` 或 `/u/<handle>/<project>/<檔名>`），可見範圍維持文件現在的設定（不是你這次送的值），要改請走 **[整理文件流程]**。告訴使用者「這份文件之前已經移到 <新位置>，我更新的是那一份」，之後更新這份文件都用新位置。
 
 ```
 Report 已發布！
@@ -656,7 +656,7 @@ curl -s --max-time 15 -X DELETE https://wiki.tvbs.ai/api/tokens/<tokens[].id> -H
      [ -f "$d/SKILL.md" ] && curl -fsSL --max-time 30 "$SRC" -o "$d/SKILL.md" && echo "UPDATED $d"
    done
    ```
-3. 更新完告訴使用者結果。plugin 的新版要重新開啟 Claude Code 才會載入；用 `/setup` 安裝的，重新讀取新的 `SKILL.md` 後就能直接用新版。
+3. 更新完告訴使用者結果。plugin 的新版要重新開啟 Claude Code 才會載入；用 `/setup` 安裝的，重新讀取新的 `SKILL.md` 後就能直接用新版，並依新版寫的版本號呼叫一次 `/api/me`，網頁上的更新提醒就會消失。
 4. 兩種位置都找不到時，改用終端機執行 `curl -fsSL https://wiki.tvbs.ai/setup` 讀取安裝說明，照著做。
 
 ---
