@@ -43,6 +43,12 @@
       "category": "productivity"
     },
     {
+      "name": "html-report",
+      "description": "Turn an answer, research result, comparison or incident review into one readable HTML report: the agent writes a short Markdown draft and the bundled CLI lays it out with diagrams, charts and light/dark themes, producing a single offline file ready for the company wiki. Recommended companion of company-wiki.",
+      "source": "./plugins/html-report",
+      "category": "productivity"
+    },
+    {
       "name": "roomcord",
       "description": "Configure and manage AI agents on RoomCord (WorkCord is RoomCord for Enterprise) — room agents, custom agents, skills, schedules, and API credentials — with your own login through the workcord CLI.",
       "source": "./plugins/roomcord",
