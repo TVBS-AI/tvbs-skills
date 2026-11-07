@@ -6,9 +6,13 @@
 - 做法 A：偵測或在使用者同意後安裝 tvbs-skills 的 `html-report` skill，只寫 Markdown 稿，由它內附的 CLI 排版、畫圖，產出不載入外部資源的單一 HTML；用 `patch` 只改既有報告的一區。已在與 wiki 相同的沙盒設定下實測可正常顯示
 - 做法 B：沒有安裝時自己寫 HTML 的規則（單一檔案、inline SVG、手機可讀、不依賴 cookie／localStorage）
 
+- 呼叫 `/api/me` 時帶 `X-Wiki-Skill: 0.6.0` 回報這份說明的版本；wiki 回覆 `skill.update` 時，做完使用者要的事後用一句話問要不要更新
+- [更新這份說明]：依安裝位置更新（Claude Code plugin 用 `claude plugin update`，`/setup` 安裝的重新下載 `SKILL.md`），不影響連結
+
 ### Changed
 - [主動詢問流程] 改走 [產生報告]，報告內容依序為結論、背景、發現與證據、資料、下一步
 - 上傳前要告訴使用者頁面裡內嵌了哪些檔案：html-report 的頁面會帶著完整原稿和引用的程式碼
+- [上傳流程] 回報時以回應的 `url` 為準：文件移走後用舊位置上傳，wiki 會更新搬過去的那份
 
 ## [0.5.0] - 2026-11-06
 ### Added

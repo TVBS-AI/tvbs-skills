@@ -22,6 +22,7 @@ description: TVBS 全公司 HTML report wiki（wiki.tvbs.ai）：幫使用者連
 | 刪除、從垃圾桶還原、永久刪除 | [刪除與垃圾桶流程] |
 | 建團隊、加成員、改角色、改名、刪除團隊 | [團隊管理流程] |
 | 查看或取消已連結的 AI 助理 | [AI 連結管理] |
+| wiki 說有新版、要更新這份說明 | [更新這份說明] |
 
 ---
 
@@ -41,6 +42,8 @@ if [ -n "${COMPANY_WIKI_TOKEN:-}" ] || [ -s "$HOME/.config/company-wiki/token" ]
   TOKEN="${COMPANY_WIKI_TOKEN:-$(cat "$HOME/.config/company-wiki/token" 2>/dev/null)}"
   ```
 - **絕對不要**把連結碼印出來、在回覆中重複、寫進報告或 git，也不要開 shell tracing 或 curl verbose。
+
+**這份說明的版本是 `0.6.0`。** 呼叫 `/api/me` 時都要加上 `-H "X-Wiki-Skill: 0.6.0"`，wiki 會依此回覆有沒有新版（見 **[更新這份說明]**）。
 
 ---
 
@@ -116,7 +119,7 @@ done
 
 ```bash
 TOKEN="${COMPANY_WIKI_TOKEN:-$(cat "$HOME/.config/company-wiki/token" 2>/dev/null)}"
-curl -s --max-time 15 -H "Authorization: Bearer $TOKEN" https://wiki.tvbs.ai/api/me
+curl -s --max-time 15 -H "Authorization: Bearer $TOKEN" -H "X-Wiki-Skill: 0.6.0" https://wiki.tvbs.ai/api/me
 ```
 
 成功後用一兩句話告訴使用者：已連結到他的帳號（`user.name`），之後只要說「把這份報告上傳到公司 wiki」就可以；要取消連結，到 https://wiki.tvbs.ai/settings/tokens 按「撤銷」。
@@ -217,10 +220,10 @@ template: doc        # 長篇、要從頭讀到尾的報告用 doc；一頁看�
 
 ```bash
 TOKEN="${COMPANY_WIKI_TOKEN:-$(cat "$HOME/.config/company-wiki/token" 2>/dev/null)}"
-curl -s --max-time 15 -H "Authorization: Bearer $TOKEN" https://wiki.tvbs.ai/api/me
+curl -s --max-time 15 -H "Authorization: Bearer $TOKEN" -H "X-Wiki-Skill: 0.6.0" https://wiki.tvbs.ai/api/me
 ```
 
-成功回應：`{ "success": true, "user": { "handle": "…", "email": "…", "name": "…" }, "teams": [{ "slug": "…", "name": "…", "role": "owner" }] }`。
+成功回應：`{ "success": true, "user": { "handle": "…", "email": "…", "name": "…" }, "teams": [{ "slug": "…", "name": "…", "role": "owner" }], "skill": { "yours": "0.6.0", "latest": "0.6.0", "update": false } }`。`skill.update` 是 true 時，照 **[更新這份說明]** 在回覆最後提一句，不要因此中斷或延後上傳。
 
 使用回應的 handle 與 teams 選空間，不要猜測身分或團隊 slug。`role` 是使用者在該團隊的角色：`owner`（管理者）、`member`（編輯者）可以上傳；`viewer`（檢視者）**只能看、不能上傳或刪除**，選空間時不要提供這些團隊。若失敗，依錯誤處理停止，不要繼續上傳。
 
@@ -290,7 +293,7 @@ API 的 multipart 欄位為 `file`（必填）及 `space`、`project`、`title`�
 
 ### Step 5：回報結果
 
-先確認 JSON 的 `success` 為 true；成功回應包含 `url`、`indexUrl`、`visibility`。使用**實際回傳值**回報：
+先確認 JSON 的 `success` 為 true；成功回應包含 `url`、`indexUrl`、`visibility`。使用**實際回傳值**回報：`url` 可能跟你上傳的位置不同，因為文件被移到別的專案或空間後，用舊位置上傳會直接更新搬過去的那份。這時專案以 `url` 裡的為準（`/t/<team>/<project>/<檔名>` 或 `/u/<handle>/<project>/<檔名>`），並告訴使用者「這份文件之前已經移到 <新位置>，我更新的是那一份」；之後更新這份文件都用新位置。
 
 ```
 Report 已發布！
@@ -632,9 +635,29 @@ curl -s --max-time 15 -H "Authorization: Bearer $TOKEN" https://wiki.tvbs.ai/api
 curl -s --max-time 15 -X DELETE https://wiki.tvbs.ai/api/tokens/<tokens[].id> -H "Authorization: Bearer $TOKEN"
 ```
 
-- `tokens[]` 每筆有 `id`、`name`、`createdAt`、`lastUsedAt`、`expiresAt`、`current`。`current` 是 true 的那一筆就是你現在用的連結。
+- `tokens[]` 每筆有 `id`、`name`、`createdAt`、`lastUsedAt`、`expiresAt`、`skillVersion`（該連結的 AI 助理最後回報的說明版本，null 表示 0.6.0 以前或還沒用過）、`skillUpdate`（是否要更新）、`current`。`current` 是 true 的那一筆就是你現在用的連結。
 - 撤銷 `current` 那一筆後你就不能再使用 wiki：執行 `rm -f "$HOME/.config/company-wiki/token"`，告訴使用者需要時再連結一次。
 - 建立新的連結只能走 **[連結流程]**（使用者在瀏覽器按「允許」），或由使用者在 https://wiki.tvbs.ai/settings/tokens 自己建立；用 API 建立會得到 403，不要嘗試。連結 90 天到期，到期後會收到 401，照錯誤處理重新連結。
+
+---
+
+## [更新這份說明]
+
+`/api/me` 回應裡的 `skill` 是 `{ "yours": "<這份說明的版本>", "latest": "<最新版>", "update": true|false, "notice": "…" }`；`update` 是 false 時什麼都不用做。`update` 是 true 時：
+
+1. **先把使用者要的事做完**，在那次回覆的最後用一句話告訴他，例如「公司 wiki 的 AI 說明有新版（<latest>），要我現在更新嗎？」。同一段對話只提一次；使用者說不用就不再提。
+2. 使用者同意後，依這份說明實際安裝的位置更新（找到幾個就更新幾個）。更新不會影響連結，不用重新按「允許」：
+   ```bash
+   # Claude Code plugin 安裝的：
+   [ -d "$HOME/.claude/plugins/cache/tvbs-skills/company-wiki" ] && claude plugin marketplace update tvbs-skills && claude plugin update company-wiki@tvbs-skills
+   # 用 wiki 的 /setup 安裝的：
+   SRC=https://raw.githubusercontent.com/TVBS-AI/tvbs-skills/main/plugins/company-wiki/skills/wiki-publish/SKILL.md
+   for d in "$HOME/.claude/skills/wiki-publish" "$HOME/.agents/skills/wiki-publish"; do
+     [ -f "$d/SKILL.md" ] && curl -fsSL --max-time 30 "$SRC" -o "$d/SKILL.md" && echo "UPDATED $d"
+   done
+   ```
+3. 更新完告訴使用者結果。plugin 的新版要重新開啟 Claude Code 才會載入；用 `/setup` 安裝的，重新讀取新的 `SKILL.md` 後就能直接用新版。
+4. 兩種位置都找不到時，改用終端機執行 `curl -fsSL https://wiki.tvbs.ai/setup` 讀取安裝說明，照著做。
 
 ---
 
