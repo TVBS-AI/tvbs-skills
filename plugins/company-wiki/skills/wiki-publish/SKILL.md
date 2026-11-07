@@ -293,7 +293,7 @@ API 的 multipart 欄位為 `file`（必填）及 `space`、`project`、`title`�
 
 ### Step 5：回報結果
 
-先確認 JSON 的 `success` 為 true；成功回應包含 `url`、`indexUrl`、`visibility`。使用**實際回傳值**回報。回應有 `movedFrom` 時，表示這份文件之前已經被移到別的專案或空間，wiki 更新的是搬過去的那一份：專案以 `url` 裡的為準（`/t/<team>/<project>/<檔名>` 或 `/u/<handle>/<project>/<檔名>`），可見範圍維持文件現在的設定（不是你這次送的值），要改請走 **[整理文件流程]**。告訴使用者「這份文件之前已經移到 <新位置>，我更新的是那一份」，之後更新這份文件都用新位置。
+先確認 JSON 的 `success` 為 true；成功回應包含 `url`、`indexUrl`、`visibility`。使用**實際回傳值**回報。回應有 `movedFrom` 時，表示這份文件之前已經被移到別的專案或空間，wiki 更新的是搬過去的那一份：專案以 `url` 裡的為準（`/t/<team>/<project>/<檔名>` 或 `/u/<handle>/<project>/<檔名>`），你送的可見範圍比文件現在更寬時，會維持文件現在的設定（以回應的 `visibility` 為準），要放寬請先問使用者，再走 **[整理文件流程]**。告訴使用者「這份文件之前已經移到 <新位置>，我更新的是那一份」，之後更新這份文件都用新位置。
 
 ```
 Report 已發布！
