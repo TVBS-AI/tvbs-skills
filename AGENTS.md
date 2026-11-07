@@ -22,6 +22,7 @@ When `SKILL.md` or any plugin file is modified:
 2. **Update `CHANGELOG.md`** in `plugins/<plugin>/` — add a new version header with today's date
 3. **Commit** with version in message: `feat(team-wiki): add tag suggestions v0.2.0`
 4. If the plugin exists in both repos (`agent-skills` and `tvbs-skills`), sync both and bump versions together
+5. **company-wiki only**: also change the version inside `skills/wiki-publish/SKILL.md` (the line 「這份說明的版本是 …」 and every `X-Wiki-Skill: …` header) to the new `plugin.json` version. The wiki compares this header with `plugin.json` on `main` to tell colleagues their skill is out of date, so a mismatch makes every agent look outdated (or hides real updates).
 
 ### CHANGELOG.md Format
 

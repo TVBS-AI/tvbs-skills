@@ -1,6 +1,6 @@
 ---
 name: wiki-publish
-description: TVBS 全公司 HTML report wiki（wiki.tvbs.ai）：幫使用者連結帳號，上傳、查詢、整理（標題、標籤、專案、可見範圍、移動、舊版）、刪除與還原 HTML 報告，並代為管理團隊（建立、加成員、改角色、改名、刪除）。網頁上能做的事都能透過 API 代勞。當使用者提到「公司 wiki」、「company-wiki」、「wiki.tvbs.ai」、「連結公司 wiki」、「上傳 report」、「發布 report」、「publish」、「wiki 團隊」、「加成員」、「補標籤」、「wiki 垃圾桶」時觸發。研究任務或大型任務完成後，主動詢問是否產生報告上傳。
+description: TVBS 全公司 HTML report wiki（wiki.tvbs.ai）：幫使用者連結帳號，上傳、查詢、整理（標題、標籤、專案、可見範圍、移動、舊版）、刪除與還原 HTML 報告，並代為管理團隊（建立、加成員、改角色、改名、刪除）。網頁上能做的事都能透過 API 代勞。當使用者提到「公司 wiki」、「company-wiki」、「wiki.tvbs.ai」、「連結公司 wiki」、「上傳 report」、「發布 report」、「publish」、「wiki 團隊」、「加成員」、「補標籤」、「wiki 垃圾桶」時觸發。研究任務或大型任務完成後，主動詢問是否產生報告上傳；產生報告時，優先用 html-report skill 排版。
 ---
 
 # Company Wiki — 公司 Report 書籤
@@ -14,6 +14,7 @@ description: TVBS 全公司 HTML report wiki（wiki.tvbs.ai）：幫使用者連
 | 使用者想做的事 | 看哪一節 |
 |---|---|
 | 第一次使用、連結帳號 | [連結流程] |
+| 寫一份要放上 wiki 的報告，或改寫既有報告的內容 | [產生報告] |
 | 上傳或更新報告 | [上傳流程] |
 | 找文件、讀內容 | [查詢流程] |
 | 改標題、標籤、可見範圍，換專案或空間，看舊版、還原舊版 | [整理文件流程] |
@@ -21,6 +22,7 @@ description: TVBS 全公司 HTML report wiki（wiki.tvbs.ai）：幫使用者連
 | 刪除、從垃圾桶還原、永久刪除 | [刪除與垃圾桶流程] |
 | 建團隊、加成員、改角色、改名、刪除團隊 | [團隊管理流程] |
 | 查看或取消已連結的 AI 助理 | [AI 連結管理] |
+| wiki 說有新版、要更新這份說明 | [更新這份說明] |
 
 ---
 
@@ -40,6 +42,8 @@ if [ -n "${COMPANY_WIKI_TOKEN:-}" ] || [ -s "$HOME/.config/company-wiki/token" ]
   TOKEN="${COMPANY_WIKI_TOKEN:-$(cat "$HOME/.config/company-wiki/token" 2>/dev/null)}"
   ```
 - **絕對不要**把連結碼印出來、在回覆中重複、寫進報告或 git，也不要開 shell tracing 或 curl verbose。
+
+**這份說明的版本是 `0.6.0`。** 呼叫 `/api/me` 時都要加上 `-H "X-Wiki-Skill: 0.6.0"`，wiki 會依此回覆有沒有新版（見 **[更新這份說明]**）。
 
 ---
 
@@ -115,7 +119,7 @@ done
 
 ```bash
 TOKEN="${COMPANY_WIKI_TOKEN:-$(cat "$HOME/.config/company-wiki/token" 2>/dev/null)}"
-curl -s --max-time 15 -H "Authorization: Bearer $TOKEN" https://wiki.tvbs.ai/api/me
+curl -s --max-time 15 -H "Authorization: Bearer $TOKEN" -H "X-Wiki-Skill: 0.6.0" https://wiki.tvbs.ai/api/me
 ```
 
 成功後用一兩句話告訴使用者：已連結到他的帳號（`user.name`），之後只要說「把這份報告上傳到公司 wiki」就可以；要取消連結，到 https://wiki.tvbs.ai/settings/tokens 按「撤銷」。
@@ -134,16 +138,92 @@ Codex 等工具可能會詢問「是否允許連上網路」或「是否允許�
 
 ---
 
+## [產生報告] 寫出同事看得懂的報告
+
+使用者要你寫報告放上 wiki 時（包括 [主動詢問流程] 使用者說「要」），先依這一節產生 HTML，再走 [上傳流程]。使用者已經給你一份現成的 HTML 時，直接上傳，不要重寫。
+
+### 寫作原則（不論用哪種做法都適用）
+
+1. **結論放最前面。** 第一段或第一區就回答「所以呢」，後面才放證據。
+2. **一區只回答一個問題。** 超過 8 區就拆成兩份報告，或刪掉不必要的區塊。
+3. **依資訊的形狀選呈現方式：**
+   - 架構、流程、決策分支 → 流程圖。
+   - 先後順序、版本演進 → 時間軸。
+   - 多個選項、多個面向的比較 → 表格，用 ✓ ✗ ! 標狀態。
+   - 數字的比較或趨勢 → 長條圖或折線圖。
+   - 數值對上限 → 用量條。
+   - 目錄、分類 → 樹狀圖。
+4. **每個事實只說一次。** 表格或圖已經呈現的內容，內文不要再重複。
+5. **不寫開場白和結尾客套**（「以下為您介紹」、「希望對您有幫助」），也不描述你怎麼做的。直接給結果和證據，例如檔案路徑加行號、指令、數字。
+6. **沒查證的事要寫明「未確認」和查證方法**，不要用「可能」帶過。清單要列完整，或寫明完整清單在哪裡，不要用「等」結尾。
+7. **不編數據。** 沒有真實數字就不畫圖表；示意用的數字要標明「示意」。
+8. 用台灣繁體中文，一句只講一件事。同一個東西從頭到尾用同一個名字。
+9. 報告要有清楚的 `<title>`，wiki 會用它當文件標題。檔名用英文小寫和 `-`，例如 `gcp-cost-review-2026-11.html`，因為檔名會成為網址；中文檔名會被改成 `doc-<時間>.html`。
+
+### 做法 A（建議）：用 html-report skill 排版
+
+html-report 是 tvbs-skills 裡專門做報告頁面的 skill。你只寫一份簡短的 Markdown 稿，它附的 CLI 會排版、畫流程圖和圖表、套用主題，產出一個不載入任何外部資源的 HTML 檔，在 wiki 上可以正常顯示。排版引擎改自開源的 answer-me-with-html：跟直接手寫 HTML 相比，要寫的字數大約只有 1/8；流程圖的座標由程式計算，不會出現箭頭指到空白處的情況。
+
+**1. 確認有沒有安裝**（需要 Node.js 20 以上）：
+
+```bash
+node --version 2>/dev/null || echo NO_NODE
+for f in "$HOME/.agents/skills/html-report/scripts/am.mjs" "$HOME/.claude/skills/html-report/scripts/am.mjs" $(find "$HOME/.claude/plugins/cache/tvbs-skills/html-report" -path '*/skills/html-report/scripts/am.mjs' 2>/dev/null | sort -V | tail -1); do
+  [ -f "$f" ] && { echo "AM=$f"; break; }
+done
+```
+
+- 有印出 `AM=<路徑>`：已經安裝。讀 `am.mjs` 上一層資料夾的 `SKILL.md`，照它做；它指令裡的 `${CLAUDE_SKILL_DIR}` 就是那個上一層資料夾。你的 skill 清單裡已經有 `html-report` 時，直接叫用它也可以。
+- 沒有安裝：先問使用者「TVBS 有一個排版報告的 skill（html-report），裝好之後報告會比較好讀、也產生得比較快，要幫你裝嗎？」使用者同意才裝：
+  - Claude Code：執行 `claude plugin marketplace add TVBS-AI/tvbs-skills`（若提示已存在，可以忽略），再執行 `claude plugin install html-report@tvbs-skills`。這次對話的 skill 清單還不會出現它，直接讀檔案即可；之後請使用者執行 `/reload-plugins`。
+  - Codex 或其他工具：執行 `npx -y skills add TVBS-AI/tvbs-skills --skill html-report -g -y -a codex`（把 `codex` 換成你的工具名稱）。
+  - 裝完再跑一次上面的確認指令。沒有 Node.js 20 以上時，先告訴使用者要裝 Node.js，使用者同意後才裝。
+  - 使用者不想裝，或安裝失敗時，改用做法 B，不要因此卡住上傳。
+
+**2. 照 html-report 的 SKILL.md 寫稿、產生頁面**，再加上 wiki 用的設定：
+
+- 稿件的 frontmatter 一定要有：
+
+```markdown
+---
+title: <報告標題>
+subtitle: <一句話摘要>
+file: <english-slug>
+lang: zh-TW
+template: doc        # 長篇、要從頭讀到尾的報告用 doc；一頁看完的總覽省略這行
+---
+```
+
+- 產生時輸出到固定的檔案，不打開瀏覽器：在 `render -` 後面加 `-o "/tmp/<english-slug>.html" --no-open`。
+- 產出的 HTML 超過 10 MB 時，對這份 HTML 執行 [圖片處理] 的壓縮腳本。
+- 上傳前照 html-report 第 7 節，告訴使用者頁面內嵌了哪些檔案：每頁都帶著完整原稿，`src=` 引用的程式碼和圖片也都在頁面裡。要上傳到團隊或全公司範圍時一定要說；有密碼、金鑰或個資的檔案一律不要引用。
+- 成功後，用 [上傳流程] 上傳 `-o` 指定的那個檔案。
+
+**3. 更新既有的報告：** 用 [查詢流程] 讀回 HTML，存成跟線上同名的檔案（`/tmp/<線上同名檔名>.html`）。只改一區時，照 html-report 的「只改一個區塊」用 `patch`，其他區塊不會變。改動很多時，從頁面裡的 `<textarea id="am-source">` 取出原稿（內容經過 HTML 跳脫，要先還原），改好後用同一個檔名重新產生。兩種方式都用原本的空間、專案和檔名上傳，前一版會留成舊版。
+
+**在 wiki 上的限制：** wiki 會把報告隔離在沙盒裡，不能使用瀏覽器的儲存空間。頁面照常顯示，也能切換主題；但讀者在頁面上做的選擇、評論和標註，重新整理就會消失。
+
+### 做法 B：自己寫 HTML
+
+沒有安裝 html-report，或使用者不想裝時：
+
+- 做成單一檔案，CSS 寫在 `<style>` 裡。圖表用 inline SVG 或 HTML／CSS 畫，真的需要時才從 CDN 載入圖表函式庫。
+- 加上 `<meta charset="utf-8">`、`<meta name="viewport" content="width=device-width, initial-scale=1">` 和 `<html lang="zh-Hant-TW">`，手機上也要讀得清楚。
+- 不要依賴 cookie 或 localStorage，wiki 的沙盒會擋掉。
+- 照上面的寫作原則寫；圖片依 [圖片處理] 處理。
+
+---
+
 ## [上傳流程] 日常使用
 
 ### Step 1：取得身分與空間
 
 ```bash
 TOKEN="${COMPANY_WIKI_TOKEN:-$(cat "$HOME/.config/company-wiki/token" 2>/dev/null)}"
-curl -s --max-time 15 -H "Authorization: Bearer $TOKEN" https://wiki.tvbs.ai/api/me
+curl -s --max-time 15 -H "Authorization: Bearer $TOKEN" -H "X-Wiki-Skill: 0.6.0" https://wiki.tvbs.ai/api/me
 ```
 
-成功回應：`{ "success": true, "user": { "handle": "…", "email": "…", "name": "…" }, "teams": [{ "slug": "…", "name": "…", "role": "owner" }] }`。
+成功回應：`{ "success": true, "user": { "handle": "…", "email": "…", "name": "…" }, "teams": [{ "slug": "…", "name": "…", "role": "owner" }], "skill": { "yours": "0.6.0", "latest": "0.6.0", "update": false } }`。`skill.update` 是 true 時，照 **[更新這份說明]** 在回覆最後提一句，不要因此中斷或延後上傳。
 
 使用回應的 handle 與 teams 選空間，不要猜測身分或團隊 slug。`role` 是使用者在該團隊的角色：`owner`（管理者）、`member`（編輯者）可以上傳；`viewer`（檢視者）**只能看、不能上傳或刪除**，選空間時不要提供這些團隊。若失敗，依錯誤處理停止，不要繼續上傳。
 
@@ -151,7 +231,7 @@ curl -s --max-time 15 -H "Authorization: Bearer $TOKEN" https://wiki.tvbs.ai/api
 
 若使用者未提供，依序確認（已提供的不要重問）：
 
-1. **HTML 檔案路徑**（必填）— 必須是 `.html` 或 `.htm`，大小最多 **50 MiB**。檔案超過 10 MB，或內嵌了截圖、照片時，先依 **[圖片處理]** 壓縮。
+1. **HTML 檔案路徑**（必填）— 必須是 `.html` 或 `.htm`，大小最多 **50 MiB**。還沒有 HTML、要你寫報告時，先走 **[產生報告]**。檔案超過 10 MB，或內嵌了截圖、照片時，先依 **[圖片處理]** 壓縮。
 2. **空間** — 預設 `u/<user.handle>`（自己的個人空間）；團隊空間為 `t/<team.slug>`，從 Step 1 中 role 不是 `viewer` 的 teams 選擇。選空間不等於選可見範圍。
 3. **專案名稱**（一定要送）— 專案是網址的一部分，也是網頁上分類、搜尋文件的依據。沒送會被放進 `general`，之後很難找。依序決定：
    - **更新既有文件**：沿用它目前的 `project`（用 **[查詢流程]** 查），不要換，否則會在另一個網址多出一份新文件。
@@ -213,7 +293,7 @@ API 的 multipart 欄位為 `file`（必填）及 `space`、`project`、`title`�
 
 ### Step 5：回報結果
 
-先確認 JSON 的 `success` 為 true；成功回應包含 `url`、`indexUrl`、`visibility`。使用**實際回傳值**回報：
+先確認 JSON 的 `success` 為 true；成功回應包含 `url`、`indexUrl`、`visibility`。使用**實際回傳值**回報。回應有 `movedFrom` 時，表示這份文件之前已經被移到別的專案或空間，wiki 更新的是搬過去的那一份：專案以 `url` 裡的為準（`/t/<team>/<project>/<檔名>` 或 `/u/<handle>/<project>/<檔名>`），你送的可見範圍比文件現在更寬時，會維持文件現在的設定（以回應的 `visibility` 為準），要放寬請先問使用者，再走 **[整理文件流程]**。告訴使用者「這份文件之前已經移到 <新位置>，我更新的是那一份」，之後更新這份文件都用新位置。
 
 ```
 Report 已發布！
@@ -231,7 +311,7 @@ Report 已發布！
 
 wiki 只收一個 HTML 檔，所以圖片要用 base64 內嵌（`data:image/...`），或連到外部網址；`./chart.png` 這種相對路徑讀不到。base64 會讓圖片大約變大 1/3，一張沒處理的 Retina 截圖就可能有 5–10 MB。產生或上傳報告前：
 
-1. **圖表不要用截圖**：改用 inline SVG、HTML／CSS 畫，或從 CDN 載入圖表函式庫（例如 Chart.js），通常只有幾 KB，放大也清楚。
+1. **圖表不要用截圖**：用 html-report 時改用它的 `chart`、`flow` 等元件；自己寫 HTML 時改用 inline SVG、HTML／CSS 畫，或從 CDN 載入圖表函式庫（例如 Chart.js）。這些做法通常只有幾 KB，放大也清楚。
 2. **照片、截圖要縮小並轉成 WebP**：寬度縮到 1600 px，品質約 80，並去掉拍攝資訊（EXIF）。報告內文的顯示寬度用 1600 px 已經足夠。長截圖只限制寬度，不會被壓扁。WebP 支援透明背景，所有現代瀏覽器都能顯示。動畫 GIF 保留原樣，或改成靜態截圖。
 3. **內嵌後、上傳前，用下面的腳本把 HTML 裡的大圖再壓一次**：
    - 只處理 50 KB 以上的 PNG／JPEG／WebP 等點陣圖。
@@ -555,9 +635,29 @@ curl -s --max-time 15 -H "Authorization: Bearer $TOKEN" https://wiki.tvbs.ai/api
 curl -s --max-time 15 -X DELETE https://wiki.tvbs.ai/api/tokens/<tokens[].id> -H "Authorization: Bearer $TOKEN"
 ```
 
-- `tokens[]` 每筆有 `id`、`name`、`createdAt`、`lastUsedAt`、`expiresAt`、`current`。`current` 是 true 的那一筆就是你現在用的連結。
+- `tokens[]` 每筆有 `id`、`name`、`createdAt`、`lastUsedAt`、`expiresAt`、`skillVersion`（該連結的 AI 助理最後回報的說明版本，null 表示 0.6.0 以前或還沒用過）、`skillUpdate`（是否要更新）、`current`。`current` 是 true 的那一筆就是你現在用的連結。
 - 撤銷 `current` 那一筆後你就不能再使用 wiki：執行 `rm -f "$HOME/.config/company-wiki/token"`，告訴使用者需要時再連結一次。
 - 建立新的連結只能走 **[連結流程]**（使用者在瀏覽器按「允許」），或由使用者在 https://wiki.tvbs.ai/settings/tokens 自己建立；用 API 建立會得到 403，不要嘗試。連結 90 天到期，到期後會收到 401，照錯誤處理重新連結。
+
+---
+
+## [更新這份說明]
+
+`/api/me` 回應裡的 `skill` 是 `{ "yours": "<這份說明的版本>", "latest": "<最新版>", "update": true|false, "notice": "…" }`；`update` 是 false 時什麼都不用做。`update` 是 true 時：
+
+1. **先把使用者要的事做完**，在那次回覆的最後用一句話告訴他，例如「公司 wiki 的 AI 說明有新版（<latest>），要我現在更新嗎？」。同一段對話只提一次；使用者說不用就不再提。
+2. 使用者同意後，依這份說明實際安裝的位置更新（找到幾個就更新幾個）。更新不會影響連結，不用重新按「允許」：
+   ```bash
+   # Claude Code plugin 安裝的：
+   [ -d "$HOME/.claude/plugins/cache/tvbs-skills/company-wiki" ] && claude plugin marketplace update tvbs-skills && claude plugin update company-wiki@tvbs-skills
+   # 用 wiki 的 /setup 安裝的：
+   SRC=https://raw.githubusercontent.com/TVBS-AI/tvbs-skills/main/plugins/company-wiki/skills/wiki-publish/SKILL.md
+   for d in "$HOME/.claude/skills/wiki-publish" "$HOME/.agents/skills/wiki-publish"; do
+     [ -f "$d/SKILL.md" ] && curl -fsSL --max-time 30 "$SRC" -o "$d/SKILL.md" && echo "UPDATED $d"
+   done
+   ```
+3. 更新完告訴使用者結果。plugin 的新版要重新開啟 Claude Code 才會載入；用 `/setup` 安裝的，重新讀取新的 `SKILL.md` 後就能直接用新版，並依新版寫的版本號呼叫一次 `/api/me`，網頁上的更新提醒就會消失。
+4. 兩種位置都找不到時，改用終端機執行 `curl -fsSL https://wiki.tvbs.ai/setup` 讀取安裝說明，照著做。
 
 ---
 
@@ -599,13 +699,13 @@ curl -s --max-time 15 -X DELETE https://wiki.tvbs.ai/api/tokens/<tokens[].id> -H
 
 **使用者回答「要」後：**
 
-1. 根據對話內容與任務結果，產生一份完整的 HTML 報告（artifact 格式）；圖表與圖片依 **[圖片處理]** 處理
-2. 報告內容包含：
-   - 任務背景與目標
-   - 主要發現 / 結論
-   - 關鍵資料或圖表（若有）
-   - 建議下一步（若適合）
-3. 將 HTML 存到暫存路徑，例如 `/tmp/<project>-report-<YYYY-MM-DD>.html`
-4. 依「第一步」確認已連結（未連結就先走 **[連結流程]**），接著執行 **[上傳流程]**（從 Step 1 取得身分與空間開始）
+1. 依 **[產生報告]**，根據對話內容與任務結果產生 HTML 報告，存到暫存路徑，例如 `/tmp/<project>-report-<YYYY-MM-DD>.html`。
+2. 報告內容依序是：
+   - 結論。
+   - 任務背景與目標。
+   - 主要發現與證據。
+   - 關鍵資料或圖表（有真實數據時才放）。
+   - 建議的下一步（適合時才放）。
+3. 依「第一步」確認已連結（未連結就先走 **[連結流程]**），接著執行 **[上傳流程]**（從 Step 1 取得身分與空間開始）。
 
 **使用者回答「不用」：** 直接結束，不再追問。
