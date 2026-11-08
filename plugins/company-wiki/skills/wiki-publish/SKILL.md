@@ -43,7 +43,7 @@ if [ -n "${COMPANY_WIKI_TOKEN:-}" ] || [ -s "$HOME/.config/company-wiki/token" ]
   ```
 - **絕對不要**把連結碼印出來、在回覆中重複、寫進報告或 git，也不要開 shell tracing 或 curl verbose。
 
-**這份說明的版本是 `0.6.0`。** 呼叫 `/api/me` 時都要加上 `-H "X-Wiki-Skill: 0.6.0"`，wiki 會依此回覆有沒有新版（見 **[更新這份說明]**）。
+**這份說明的版本是 `0.6.1`。** 呼叫 `/api/me` 時都要加上 `-H "X-Wiki-Skill: 0.6.1"`，wiki 會依此回覆有沒有新版（見 **[更新這份說明]**）。
 
 ---
 
@@ -119,7 +119,7 @@ done
 
 ```bash
 TOKEN="${COMPANY_WIKI_TOKEN:-$(cat "$HOME/.config/company-wiki/token" 2>/dev/null)}"
-curl -s --max-time 15 -H "Authorization: Bearer $TOKEN" -H "X-Wiki-Skill: 0.6.0" https://wiki.tvbs.ai/api/me
+curl -s --max-time 15 -H "Authorization: Bearer $TOKEN" -H "X-Wiki-Skill: 0.6.1" https://wiki.tvbs.ai/api/me
 ```
 
 成功後用一兩句話告訴使用者：已連結到他的帳號（`user.name`），之後只要說「把這份報告上傳到公司 wiki」就可以；要取消連結，到 https://wiki.tvbs.ai/settings/tokens 按「撤銷」。
@@ -220,10 +220,10 @@ template: doc        # 長篇、要從頭讀到尾的報告用 doc；一頁看�
 
 ```bash
 TOKEN="${COMPANY_WIKI_TOKEN:-$(cat "$HOME/.config/company-wiki/token" 2>/dev/null)}"
-curl -s --max-time 15 -H "Authorization: Bearer $TOKEN" -H "X-Wiki-Skill: 0.6.0" https://wiki.tvbs.ai/api/me
+curl -s --max-time 15 -H "Authorization: Bearer $TOKEN" -H "X-Wiki-Skill: 0.6.1" https://wiki.tvbs.ai/api/me
 ```
 
-成功回應：`{ "success": true, "user": { "handle": "…", "email": "…", "name": "…" }, "teams": [{ "slug": "…", "name": "…", "role": "owner" }], "skill": { "yours": "0.6.0", "latest": "0.6.0", "update": false } }`。`skill.update` 是 true 時，照 **[更新這份說明]** 在回覆最後提一句，不要因此中斷或延後上傳。
+成功回應：`{ "success": true, "user": { "handle": "…", "email": "…", "name": "…" }, "teams": [{ "slug": "…", "name": "…", "role": "owner" }], "skill": { "yours": "0.6.1", "latest": "0.6.1", "update": false } }`。`skill.update` 是 true 時，照 **[更新這份說明]** 在回覆最後提一句，不要因此中斷或延後上傳。
 
 使用回應的 handle 與 teams 選空間，不要猜測身分或團隊 slug。`role` 是使用者在該團隊的角色：`owner`（管理者）、`member`（編輯者）可以上傳；`viewer`（檢視者）**只能看、不能上傳或刪除**，選空間時不要提供這些團隊。若失敗，依錯誤處理停止，不要繼續上傳。
 
@@ -293,7 +293,7 @@ API 的 multipart 欄位為 `file`（必填）及 `space`、`project`、`title`�
 
 ### Step 5：回報結果
 
-先確認 JSON 的 `success` 為 true；成功回應包含 `url`、`indexUrl`、`visibility`。使用**實際回傳值**回報。回應有 `movedFrom` 時，表示這份文件之前已經被移到別的專案或空間，wiki 更新的是搬過去的那一份：專案以 `url` 裡的為準（`/t/<team>/<project>/<檔名>` 或 `/u/<handle>/<project>/<檔名>`），你送的可見範圍比文件現在更寬時，會維持文件現在的設定（以回應的 `visibility` 為準），要放寬請先問使用者，再走 **[整理文件流程]**。告訴使用者「這份文件之前已經移到 <新位置>，我更新的是那一份」，之後更新這份文件都用新位置。
+先確認 JSON 的 `success` 為 true；成功回應包含 `url`、`indexUrl`、`visibility`。使用**實際回傳值**回報：
 
 ```
 Report 已發布！
