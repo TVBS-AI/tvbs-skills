@@ -1,6 +1,6 @@
 ---
 name: wiki-publish
-description: TVBS 全公司 HTML report wiki（wiki.tvbs.ai）：幫使用者連結帳號，上傳、查詢、整理（標題、標籤、專案、可見範圍、移動、舊版）、刪除與還原 HTML 報告，並代為管理團隊（建立、加成員、改角色、改名、刪除）。網頁上能做的事都能透過 API 代勞。當使用者提到「公司 wiki」、「company-wiki」、「wiki.tvbs.ai」、「連結公司 wiki」、「上傳 report」、「發布 report」、「publish」、「wiki 團隊」、「加成員」、「補標籤」、「wiki 垃圾桶」時觸發。研究任務或大型任務完成後，主動詢問是否產生報告上傳；產生報告時，優先用 html-report skill 排版。
+description: TVBS 全公司 HTML report wiki（wiki.tvbs.ai）：幫使用者連結帳號，上傳、查詢、整理（標題、標籤、專案、可見範圍、移動、舊版）、刪除與還原 HTML 報告，並代為管理團隊（建立、加成員、改角色、改名、刪除）。網頁上能做的事都能透過 API 代勞。當使用者提到「公司 wiki」、「company-wiki」、「wiki.tvbs.ai」、「連結公司 wiki」、「上傳 report」、「發布 report」、「publish」、「wiki 團隊」、「加成員」、「補標籤」、「wiki 垃圾桶」時觸發。研究任務或大型任務完成後，主動詢問是否產生報告上傳；產生報告時依內容選做法，適合的（流程、架構、比較、決策、數據）可以用 html-report skill 排版。
 ---
 
 # Company Wiki — 公司 Report 書籤
@@ -43,7 +43,7 @@ if [ -n "${COMPANY_WIKI_TOKEN:-}" ] || [ -s "$HOME/.config/company-wiki/token" ]
   ```
 - **絕對不要**把連結碼印出來、在回覆中重複、寫進報告或 git，也不要開 shell tracing 或 curl verbose。
 
-**這份說明的版本是 `0.6.1`。** 呼叫 `/api/me` 時都要加上 `-H "X-Wiki-Skill: 0.6.1"`，wiki 會依此回覆有沒有新版（見 **[更新這份說明]**）。
+**這份說明的版本是 `0.6.2`。** 呼叫 `/api/me` 時都要加上 `-H "X-Wiki-Skill: 0.6.2"`，wiki 會依此回覆有沒有新版（見 **[更新這份說明]**）。
 
 ---
 
@@ -119,7 +119,7 @@ done
 
 ```bash
 TOKEN="${COMPANY_WIKI_TOKEN:-$(cat "$HOME/.config/company-wiki/token" 2>/dev/null)}"
-curl -s --max-time 15 -H "Authorization: Bearer $TOKEN" -H "X-Wiki-Skill: 0.6.1" https://wiki.tvbs.ai/api/me
+curl -s --max-time 15 -H "Authorization: Bearer $TOKEN" -H "X-Wiki-Skill: 0.6.2" https://wiki.tvbs.ai/api/me
 ```
 
 成功後用一兩句話告訴使用者：已連結到他的帳號（`user.name`），之後只要說「把這份報告上傳到公司 wiki」就可以；要取消連結，到 https://wiki.tvbs.ai/settings/tokens 按「撤銷」。
@@ -140,9 +140,24 @@ Codex 等工具可能會詢問「是否允許連上網路」或「是否允許�
 
 ## [產生報告] 寫出同事看得懂的報告
 
-使用者要你寫報告放上 wiki 時（包括 [主動詢問流程] 使用者說「要」），先依這一節產生 HTML，再走 [上傳流程]。使用者已經給你一份現成的 HTML 時，直接上傳，不要重寫。
+使用者要你寫報告放上 wiki 時（包括 [主動詢問流程] 使用者說「要」），先依這一節產生 HTML，再走 [上傳流程]。
 
-### 寫作原則（不論用哪種做法都適用）
+### 先選做法
+
+html-report 是一種呈現方式，不是規定。依內容選：
+
+| 內容 | 做法 |
+|---|---|
+| 要讓人看懂關係、架構、流程或決策分支；多方案比較或取捨；事件檢討、研究結論、技術調查、變更摘要；有真實數字要比較 | 做法 A：html-report。寫一份簡短的稿，就能產出有圖、有表、深淺色都正常的頁面 |
+| 需要自訂 JavaScript 互動，例如儀表板、試算、模擬（html-report 的頁面不會執行自訂腳本） | 做法 B：自己寫 HTML |
+| 使用者指定了版型、品牌或設計 | 做法 B |
+| 內容要完整保留，例如逐字稿、會議紀錄原文、合約、法規、原始資料 | 做法 B：照原文排版，不刪減內容 |
+| 使用者已經給你一份現成的 HTML | 直接上傳，不要重寫 |
+| 更新既有報告 | 沿用它原本的做法：頁面裡有 `<textarea id="am-source">` 的是 html-report 產生的，用做法 A 的第 3 步；其他的照原本的 HTML 修改 |
+
+拿不準時，用一句話告訴使用者你打算用哪種做法和原因。
+
+### 寫作原則（自己寫的報告都適用；要完整保留的原文除外）
 
 1. **結論放最前面。** 第一段或第一區就回答「所以呢」，後面才放證據。
 2. **一區只回答一個問題。** 超過 8 區就拆成兩份報告，或刪掉不必要的區塊。
@@ -160,7 +175,7 @@ Codex 等工具可能會詢問「是否允許連上網路」或「是否允許�
 8. 用台灣繁體中文，一句只講一件事。同一個東西從頭到尾用同一個名字。
 9. 報告要有清楚的 `<title>`，wiki 會用它當文件標題。檔名用英文小寫和 `-`，例如 `gcp-cost-review-2026-11.html`，因為檔名會成為網址；中文檔名會被改成 `doc-<時間>.html`。
 
-### 做法 A（建議）：用 html-report skill 排版
+### 做法 A：用 html-report 排版（內容適合時）
 
 html-report 是 tvbs-skills 裡專門做報告頁面的 skill。你只寫一份簡短的 Markdown 稿，它附的 CLI 會排版、畫流程圖和圖表、套用主題，產出一個不載入任何外部資源的 HTML 檔，在 wiki 上可以正常顯示。排版引擎改自開源的 answer-me-with-html：跟直接手寫 HTML 相比，要寫的字數大約只有 1/8；流程圖的座標由程式計算，不會出現箭頭指到空白處的情況。
 
@@ -178,7 +193,7 @@ done
   - Claude Code：執行 `claude plugin marketplace add TVBS-AI/tvbs-skills`（若提示已存在，可以忽略），再執行 `claude plugin install html-report@tvbs-skills`。這次對話的 skill 清單還不會出現它，直接讀檔案即可；之後請使用者執行 `/reload-plugins`。
   - Codex 或其他工具：執行 `npx -y skills add TVBS-AI/tvbs-skills --skill html-report -g -y -a codex`（把 `codex` 換成你的工具名稱）。
   - 裝完再跑一次上面的確認指令。沒有 Node.js 20 以上時，先告訴使用者要裝 Node.js，使用者同意後才裝。
-  - 使用者不想裝，或安裝失敗時，改用做法 B，不要因此卡住上傳。
+  - 同一段對話只問一次。使用者不想裝，或安裝失敗時，改用做法 B，不要因此卡住上傳，之後也不再問。
 
 **2. 照 html-report 的 SKILL.md 寫稿、產生頁面**，再加上 wiki 用的設定：
 
@@ -205,7 +220,7 @@ template: doc        # 長篇、要從頭讀到尾的報告用 doc；一頁看�
 
 ### 做法 B：自己寫 HTML
 
-沒有安裝 html-report，或使用者不想裝時：
+內容不適合 html-report（見〈先選做法〉）、使用者指定了版型，或沒有安裝 html-report 時：
 
 - 做成單一檔案，CSS 寫在 `<style>` 裡。圖表用 inline SVG 或 HTML／CSS 畫，真的需要時才從 CDN 載入圖表函式庫。
 - 加上 `<meta charset="utf-8">`、`<meta name="viewport" content="width=device-width, initial-scale=1">` 和 `<html lang="zh-Hant-TW">`，手機上也要讀得清楚。
@@ -220,10 +235,10 @@ template: doc        # 長篇、要從頭讀到尾的報告用 doc；一頁看�
 
 ```bash
 TOKEN="${COMPANY_WIKI_TOKEN:-$(cat "$HOME/.config/company-wiki/token" 2>/dev/null)}"
-curl -s --max-time 15 -H "Authorization: Bearer $TOKEN" -H "X-Wiki-Skill: 0.6.1" https://wiki.tvbs.ai/api/me
+curl -s --max-time 15 -H "Authorization: Bearer $TOKEN" -H "X-Wiki-Skill: 0.6.2" https://wiki.tvbs.ai/api/me
 ```
 
-成功回應：`{ "success": true, "user": { "handle": "…", "email": "…", "name": "…" }, "teams": [{ "slug": "…", "name": "…", "role": "owner" }], "skill": { "yours": "0.6.1", "latest": "0.6.1", "update": false } }`。`skill.update` 是 true 時，照 **[更新這份說明]** 在回覆最後提一句，不要因此中斷或延後上傳。
+成功回應：`{ "success": true, "user": { "handle": "…", "email": "…", "name": "…" }, "teams": [{ "slug": "…", "name": "…", "role": "owner" }], "skill": { "yours": "0.6.2", "latest": "0.6.2", "update": false } }`。`skill.update` 是 true 時，照 **[更新這份說明]** 在回覆最後提一句，不要因此中斷或延後上傳。
 
 使用回應的 handle 與 teams 選空間，不要猜測身分或團隊 slug。`role` 是使用者在該團隊的角色：`owner`（管理者）、`member`（編輯者）可以上傳；`viewer`（檢視者）**只能看、不能上傳或刪除**，選空間時不要提供這些團隊。若失敗，依錯誤處理停止，不要繼續上傳。
 
