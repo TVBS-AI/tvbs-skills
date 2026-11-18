@@ -2,7 +2,7 @@
 
 ## [0.7.0] - 2026-11-19
 ### Added
-- [分享流程]：把文件另外分享給指定的人（email）或整個團隊（`t/<slug>`），只能閱讀；看分享名單、加入、移除（`GET`／`PATCH /api/doc/shares`）。使用者只說名字時，先用 `/api/share-targets` 查建議，不猜 email。加入前一定要使用者明確同意，回報時提醒系統不會寄通知
+- [分享流程]：把文件另外分享給指定的人（email）或整個團隊（`t/<slug>`），只能閱讀；看分享名單、加入、移除（`GET`／`PATCH /api/doc/shares`）。使用者只說名字時，先用 `/api/share-targets` 查建議，不猜 email。加入前一定要使用者明確同意，回報時提醒系統不會寄通知。集團同事的帳號只能分享給自己的團隊和隊友；不能分享給自己；名單上的 `other-team` 是集團同事看不到的團隊
 - [查詢流程]：`/api/docs` 的新篩選 `who`（`mine`、`shared`、`u/<handle>`）、`project`、`tag`、`untagged=1`、`sort`、`facets=1`，以及每筆的 `shares`、`sharedWithMe`
 
 ### Changed

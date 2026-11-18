@@ -542,7 +542,9 @@ curl -s --max-time 15 -X DELETE https://wiki.tvbs.ai/api/doc/version \
 
 **可以分享給誰：**
 - **人**：用 email。公司或集團網域的 email 都可以，對方還沒登入過也沒關係；其他 email 要對方登入過 wiki 才行。不符合時會得到 400，所有情況都是同一個訊息，不要猜原因，請使用者給對方的公司 email。
-- **團隊**：用 `t/<team-slug>`，代表團隊的所有成員，包括檢視者和團隊裡的集團同事，以之後的成員為準。團隊刪除後，分享給它的設定就不再生效。集團同事的帳號只能分享給自己所在的團隊；其他團隊會得到 `team not found`。
+- **團隊**：用 `t/<team-slug>`，代表團隊的所有成員，包括檢視者和團隊裡的集團同事，以之後的成員為準。團隊刪除後，分享給它的設定就不再生效。
+- **集團同事的帳號**：只能分享給自己所在的團隊，或這些團隊成員的公司或集團 email；其他人一律得到同一句 400，其他團隊得到 `team not found`。
+- 不能分享給自己（400）：使用者本來就看得到。
 - 一次最多 20 個對象，一份文件最多 50 個；更多人時請分享給團隊。
 
 使用者只說名字（「分享給陳凱」、「分享給國際組」）時，先查建議清單，不要猜 email 或團隊代號：
@@ -566,6 +568,7 @@ curl -s --max-time 15 -G https://wiki.tvbs.ai/api/doc/shares \
 回應為 `{ "success": true, "url": "…", "visibility": "…", "shares": […] }`。`shares` 每筆有 `kind`：
 - `team`：`target`（`t/<slug>`）、`name`、`members`（人數）、`hasAffiliates`（有沒有集團同事）、`active`（團隊還在不在）、`sharedBy`、`sharedAt`。
 - `person`：`target`（email；使用者不能看的私人 email 會是 `u/<handle>`）、`name`（對方還沒登入過時是 `null`）、`email`（看不到時是 `null`）、`signedIn`、`affiliate`（集團同事）、`sharedBy`、`sharedAt`。
+- `other-team`：只有 `sharedBy`、`sharedAt`。集團同事的帳號看到自己不在的團隊時是這樣，不知道是哪個團隊，也不能移除；跟使用者說「另一個團隊」就好，不要去查。
 
 ### 加入或移除
 
@@ -579,7 +582,7 @@ curl -s --max-time 15 -X PATCH https://wiki.tvbs.ai/api/doc/shares \
   -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/json' --data "$BODY"
 ```
 
-- `add` 和 `remove` 可以同時送，也可以是字串陣列。要移除的對象，用分享名單上的 `target`。
+- `add` 和 `remove` 可以同時送，也可以是字串陣列。要移除的對象，一律用分享名單上的 `target`：名單顯示 `u/<handle>` 的私人 email，用 email 移除會得到 400。
 - 全部成功或全部不做：只要有一個對象不符合，就會得到 400，整個請求都不會寫入，訊息會列出是哪一個。改掉那個對象後再送。
 - 可以安全重送：已經在名單上的不會重複加入，不在名單上的移除也不會出錯。回應的 `added`、`removed` 只列出真的有變動的對象，其餘欄位跟〈看分享名單〉一樣。
 - 403：使用者不能改這份文件的分享；請他找上傳者或團隊管理者。409：文件剛好被改了、移走或刪除，重新查詢後再依使用者的意思重做。
